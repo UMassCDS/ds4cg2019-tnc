@@ -1,3 +1,5 @@
+import os
+import yaml
 import logging
 from colorlog import ColoredFormatter
 
@@ -36,6 +38,30 @@ log.addHandler(ch)
 logging.addLevelName(logging.INFO + 1, 'INFOV')
 logging.Logger.infov = _infov
 
+
+# general utils
+# =============
+
+def load_config(config):
+    config_path = os.path.join('configs', config + '.yml')
+    with open(config_path) as file:
+        config = yaml.load(file)
+    return config
+
+
+def generate_tag(tag):
+    if not tag:
+        import random, string
+        letters = string.ascii_lowercase
+        tag = ''.join(random.choice(letters) for i in range(5))
+        log.warn("Tag is not specified. Random tag '{}' is assigned".format(tag))
+    else:
+        log.warn("Tag '{}' is specified".format(tag))
+    return tag
+        
+
+# save pytorch model
+# ==================
 
 def save_model(model):
     return

@@ -3,7 +3,6 @@ from __future__ import division
 
 import os
 import pdb
-import yaml
 import copy
 import time
 from abc import abstractmethod
@@ -11,7 +10,7 @@ from abc import abstractmethod
 import torch
 import torchvision
 
-from src.utils.util import log, save_model
+from src.utils.util import log, load_config, generate_tag, save_model
 from src.builders import model_builder, dataset_builder, optimizer_builder, criterion_builder
 
 log.info("PyTorch Version: {}".format(torch.__version__))
@@ -20,12 +19,9 @@ log.info("Torchvision Version: {}".format(torchvision.__version__))
 
 class BaseEngine(object):
 
-    def __init__(self, config):
-        config_path = os.path.join("configs", config + ".yml")
-        with open(config_path) as file:
-            config = yaml.load(file)
-
-        self.config = config
+    def __init__(self, config, tag):
+        self.config = load_config(config)
+        self.tag = generate_tag(tag)
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
 
@@ -46,8 +42,8 @@ class BaseEngine(object):
 
 class Engine(BaseEngine):
 
-    def __init__(self, config):
-        super(Engine, self).__init__(config)
+    def __init__(self, config, tag):
+        super(Engine, self).__init__(config, tag)
         # TODO: implement dataset_builder
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
@@ -333,7 +329,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
 
 ######################################################################
-# Set Model Parameters’ .requires_grad attribute
+# Set Model Parameters .requires_grad attribute
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 
 # This helper function sets the ``.requires_grad`` attribute of the
@@ -376,8 +372,8 @@ def set_parameter_requires_grad(model, feature_extracting):
 # we set the .requires_grad attribute to False. This is important because
 # by default, this attribute is set to True. Then, when we initialize the
 # new layer and by default the new parameters have ``.requires_grad=True``
-# so only the new layer’s parameters will be updated. When we are
-# finetuning we can leave all of the .required_grad’s set to the default
+# so only the new layers parameters will be updated. When we are
+# finetuning we can leave all of the .required_grad's set to the default
 # of True.
 # 
 # Finally, notice that inception_v3 requires the input size to be
@@ -488,7 +484,7 @@ def set_parameter_requires_grad(model, feature_extracting):
 # 
 #    (classifier): Linear(in_features=1024, out_features=1000, bias=True) 
 # 
-# To reshape the network, we reinitialize the classifier’s linear layer as
+# To reshape the network, we reinitialize the classifier's linear layer as
 # 
 # ::
 # 
@@ -653,8 +649,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # and feature extracting is to create an optimizer that only updates the
 # desired parameters. Recall that after loading the pretrained model, but
 # before reshaping, if ``feature_extract=True`` we manually set all of the
-# parameter’s ``.requires_grad`` attributes to False. Then the
-# reinitialized layer’s parameters have ``.requires_grad=True`` by
+# parameter's ``.requires_grad`` attributes to False. Then the
+# reinitialized layer's parameters have ``.requires_grad=True`` by
 # default. So now we know that *all parameters that have
 # .requires_grad=True should be optimized.* Next, we make a list of such
 # parameters and input this list to the SGD algorithm constructor.
