@@ -2,7 +2,7 @@ model: &model
   name: resnet18
   pretrained: False
   freeze: False
-  num_classes: 2
+  num_classes: 1
   checkpoint_path: ''
 
 train: &train
@@ -16,8 +16,7 @@ train: &train
   criterion: &criterion
     name: cross_entropy
 
-
 eval: &eval
-
+  use_roc: True
 data: &data
 
