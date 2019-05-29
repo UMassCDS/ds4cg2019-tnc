@@ -48,6 +48,7 @@ class Engine(BaseEngine):
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
 
+        self.num_classes = misc['num_clsses']
         self.checkpoint = misc.get('checkpoint', None)
         self.is_inception = misc.get('is_inception', False)
 
@@ -72,12 +73,12 @@ class Engine(BaseEngine):
 
         for epoch in range(start_epoch, num_epochs):
             train_start = time.time()
-            train_loss, train_acc = self._train_one_epoch()
+            train_loss = self._train_one_epoch()
     
             time_elapsed = time.time() - train_start
             log.info(
-                'Epoch {} completed in {} - train loss: {:4f}, train accuracy {:4f}'\
-                .format(epoch, time_elapsed, train_loss, train_acc))
+                'Epoch {} completed in {} - train loss: {:4f}'\
+                .format(epoch, time_elapsed, train_loss))
 
             val_start = time.time()
             val_loss, val_acc = self._val()
@@ -119,23 +120,19 @@ class Engine(BaseEngine):
                 outputs = model(inputs)
                 loss = self.criterion(outputs, loss)
 
-            _, predictions = torch.max(outputs, 1)
-
             # Backward propagation
             loss.backward()
             self.optimizer.step()
 
-             # statistics
+             # Statistics
             total_loss += loss.item() * inputs.size(0)
-            num_corrects += torch.sum(predictions == labels.data)
 
             log.info(
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i, num_batches, loss))
 
-        train_loss = total_loss / len(self.dataloader['val'].dataset)
-        train_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
-        return train_loss, train_acc
+        train_loss = total_loss / len(self.dataloader['train'].dataset)
+        return train_loss
 
 
     def _val(self):
@@ -146,12 +143,18 @@ class Engine(BaseEngine):
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
 
+            # Forward propagation
             outputs = model(inputs)
             loss = self.criterion(outputs, labels)
 
-            _, predictions = torch.max(outputs, 1)
+            # Use softmax when the num of classes > 1 else sigmoid
+            if self.num_clsses > 1:
+                _, predictions = torch.max(outputs, 1)
+            else:
+                probabilities = torch.sigmoid(outputs)
+                predictions = torch.gt(probabilities, 0.5)
 
-            # statistics
+            # Statistics
             total_loss += loss.item() * inputs.size(0)
             num_corrects += torch.sum(predictions == labels.data)
 
@@ -159,6 +162,34 @@ class Engine(BaseEngine):
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
         return val_loss, val_acc
 
-    def _eval(self, config):
-        raise NotImplementedError()
+    def _eval(self, eval_config):
+        use_roc = eval_config.get('use_roc', False)
+        total_loss, num_corrects = 0.0, 0
+        self.model.eval()
+
+        inputs, labels = self.dataloader['eval'].next()
+        inputs = inputs.to(self.device)
+        labels = labels.to(self.device)
+
+        # Forward propagation
+        outputs = model(inputs)
+        loss = self.criterion(outputs, labels)
+
+        # Use softmax when the num of classes > 1 else sigmoid
+        if self.num_clsses > 1:
+            _, predictions = torch.max(outputs, 1)
+        else:
+            probabilities = torch.sigmoid(outputs)
+            predictions = torch.gt(probabilities, 0.5)
+            if use_roc:
+                # TODO: implement save_roc
+                save_roc(probabilities, labels)
+
+        # Statistics
+        total_loss += loss.item() * inputs.size(0)
+        num_corrects += torch.sum(predictions == labels.data)
+
+        eval_loss = total_loss / len(self.dataloader['eval'].dataset)
+        eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
+        return eval_loss, eval_acc
 

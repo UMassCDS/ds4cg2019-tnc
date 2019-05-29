@@ -74,8 +74,9 @@ def build_supervised_model(model_name, model_config):
         log.warn('Recommend not to freeze the model parameters')
 
     # modify the last layer (classifier)
-    num_classes = model_config.get('num_classes', 2)
+    num_classes = model_config.get('num_classes', 1)
     model = modify_classifier(model, model_name, num_classes)
+    misc['num_classes'] = num_classes
 
     log.info(
         'Model config - pretrained: {0}, freeze: {1}, num of classes: {2}'\
