@@ -18,5 +18,11 @@ train: &train
 
 eval: &eval
   use_roc: True
+
 data: &data
+  name: nacti
+  rood_dir: 'data/nacti'
+  batch_size: 128
+  num_workers: 4
+  label_type: binary
 
