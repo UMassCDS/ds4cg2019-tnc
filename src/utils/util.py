@@ -64,8 +64,9 @@ def generate_tag(tag):
 # ==================
 
 def save_model(model):
-    return
+    raise NotImplementedError()
 
 
-def save_roc(probs, labels)
+def save_roc(probs, labels):
+    raise NotImplementedError()
 

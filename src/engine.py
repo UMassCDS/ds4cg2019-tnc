@@ -6,7 +6,6 @@ import pdb
 import copy
 import time
 from abc import abstractmethod
-
 import torch
 import torchvision
 
@@ -48,7 +47,7 @@ class Engine(BaseEngine):
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
 
-        self.num_classes = misc['num_clsses']
+        self.num_classes = misc['num_classes']
         self.checkpoint = misc.get('checkpoint', None)
         self.is_inception = misc.get('is_inception', False)
 
@@ -109,7 +108,7 @@ class Engine(BaseEngine):
             self.optimizer.zero_grad()
 
             # Forward propagation
-            if is_inception:
+            if self.is_inception:
                 # Special case for inception because in training it has an auxiliary output
                 # In training time, we calculate the loss by summing the final and auxiliary output
                 # In inference, we only consider the final output
@@ -117,8 +116,8 @@ class Engine(BaseEngine):
                 loss = self.criterion(outputs, labels) + \
                         0.4 * self.criterion(aux_outputs, labels)
             else:
-                outputs = model(inputs)
-                loss = self.criterion(outputs, loss)
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
 
             # Backward propagation
             loss.backward()
@@ -130,8 +129,9 @@ class Engine(BaseEngine):
             log.info(
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i, num_batches, loss))
+            log.warn('TOTAL LOSS : {}'.format(total_loss))
 
-        train_loss = total_loss / len(self.dataloader['train'].dataset)
+        train_loss = total_loss / float(len(self.dataloader['train'].dataset))
         return train_loss
 
 
