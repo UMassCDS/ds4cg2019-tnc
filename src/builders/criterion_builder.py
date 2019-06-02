@@ -3,7 +3,7 @@ import torch.nn as nn
 from src.utils.util import log
 
 CRITERIONS = {
-    'cross_entropy': nn.CrossEntropyLoss
+    'cross_entropy': nn.BCEWithLogitsLoss
 }
 
 def build(train_config):

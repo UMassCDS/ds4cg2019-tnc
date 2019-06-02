@@ -103,7 +103,7 @@ class Engine(BaseEngine):
 
         for i, (inputs, labels) in enumerate(self.dataloader['train']):
             inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
+            labels = labels.to(self.device).unsqueeze(-1).float()
 
             self.optimizer.zero_grad()
 
@@ -129,9 +129,10 @@ class Engine(BaseEngine):
             log.info(
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i, num_batches, loss))
+
             log.warn('TOTAL LOSS : {}'.format(total_loss))
 
-        train_loss = total_loss / float(len(self.dataloader['train'].dataset))
+        train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 
 
@@ -141,7 +142,7 @@ class Engine(BaseEngine):
 
         for inputs, labels in self.dataloader['val']:
             inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
+            labels = labels.to(self.device).unsqueeze(-1).float()
 
             # Forward propagation
             outputs = model(inputs)
@@ -169,7 +170,7 @@ class Engine(BaseEngine):
 
         inputs, labels = self.dataloader['eval'].next()
         inputs = inputs.to(self.device)
-        labels = labels.to(self.device)
+        labels = labels.to(self.device).unsqueeze(-1).float()
 
         # Forward propagation
         outputs = model(inputs)
