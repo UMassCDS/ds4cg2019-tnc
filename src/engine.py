@@ -1,4 +1,4 @@
-from __future__ import print_function 
+from __future__ import print_function
 from __future__ import division
 
 import os
@@ -9,7 +9,7 @@ from abc import abstractmethod
 import torch
 import torchvision
 
-from src.utils.util import log, load_config, generate_tag, save_model
+from src.utils.util import log, load_config, generate_tag, save_model, save_roc
 from src.builders import model_builder, dataset_builder, optimizer_builder, criterion_builder
 
 log.info("PyTorch Version: {}".format(torch.__version__))
@@ -46,6 +46,7 @@ class Engine(BaseEngine):
         # TODO: implement dataset_builder
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
+        self.model.to(self.device)
 
         self.num_classes = misc['num_classes']
         self.checkpoint = misc.get('checkpoint', None)
@@ -73,7 +74,7 @@ class Engine(BaseEngine):
         for epoch in range(start_epoch, num_epochs):
             train_start = time.time()
             train_loss = self._train_one_epoch()
-    
+
             time_elapsed = time.time() - train_start
             log.info(
                 'Epoch {} completed in {} - train loss: {:4f}'\
@@ -85,12 +86,12 @@ class Engine(BaseEngine):
             if val_acc > best_acc:
                 best_acc = val_acc
                 best_model = copy.deepcopy(self.model.state_dict())
-                # TODO: implement save_model 
+                # TODO: implement save_model
                 save_model(best_model)
 
             val_accuracies.append(val_acc)
             time_elapsed = time.time() - val_start
-            
+
             log.infov(
                 'Epoch {} completed in {} - val loss: {:4f}, val accuracy {:4f}'\
                 .format(epoch, time_elapsed, val_loss, val_acc))
@@ -112,7 +113,7 @@ class Engine(BaseEngine):
                 # Special case for inception because in training it has an auxiliary output
                 # In training time, we calculate the loss by summing the final and auxiliary output
                 # In inference, we only consider the final output
-                outputs, aux_outputs = model(inputs)
+                outputs, aux_outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels) + \
                         0.4 * self.criterion(aux_outputs, labels)
             else:
@@ -145,7 +146,7 @@ class Engine(BaseEngine):
             labels = labels.to(self.device).unsqueeze(-1).float()
 
             # Forward propagation
-            outputs = model(inputs)
+            outputs = self.model(inputs)
             loss = self.criterion(outputs, labels)
 
             # Use softmax when the num of classes > 1 else sigmoid
@@ -173,7 +174,7 @@ class Engine(BaseEngine):
         labels = labels.to(self.device).unsqueeze(-1).float()
 
         # Forward propagation
-        outputs = model(inputs)
+        outputs = self.model(inputs)
         loss = self.criterion(outputs, labels)
 
         # Use softmax when the num of classes > 1 else sigmoid

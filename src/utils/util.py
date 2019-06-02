@@ -60,7 +60,6 @@ def generate_tag(tag):
     else:
         log.warn("Tag '{}' is specified".format(tag))
     return tag
-        
 
 # save pytorch model
 # ==================
