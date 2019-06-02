@@ -16,11 +16,11 @@ class NACTI(Dataset):
 	MULTI = {}
 	LABEL_TYPES = {'binary': BINARY, 'multi': MULTI}
 
-	def __init__(self, root_dir, label_type, transform=None):
-		self.root_dir = root_dir
+	def __init__(self, data_dir, label_type, transform=None):
+		self.data_dir = data_dir
 		
 		# load meta data
-		metadata_path = os.path.join(self.root_dir, 'nacti_metadata_tmp.json')
+		metadata_path = os.path.join(self.data_dir, 'nacti_metadata_tmp.json')
 		with open(metadata_path, 'r') as f:
 			self.metadata = json.load(f)
 		
@@ -37,7 +37,7 @@ class NACTI(Dataset):
 
 	def __getitem__(self, idx):
 		# read an image
-		image_path = os.path.join(self.root_dir,
+		image_path = os.path.join(self.data_dir,
 								  self.metadata['images'][idx]['file_name'])
 		image = Image.open(image_path)
 
@@ -52,8 +52,8 @@ class NACTI(Dataset):
 
 class TNC(Dataset):
 
-	def __init__(self, root_dir, json_file, transform=None):
-		self.root_dir = root_dir
+	def __init__(self, data_dir, json_file, transform=None):
+		self.data_dir = data_dir
 		self.json_file = json_file
 		self.transform = transform
 

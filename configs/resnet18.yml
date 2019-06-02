@@ -21,7 +21,7 @@ eval: &eval
 
 data: &data
   name: nacti
-  rood_dir: 'data/nacti'
+  data_dir: '../data/nacti'
   batch_size: 128
   num_workers: 4
   label_type: binary

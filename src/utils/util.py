@@ -43,7 +43,9 @@ logging.Logger.infov = _infov
 # =============
 
 def load_config(config):
-    config_path = os.path.join('configs', config + '.yml')
+    root = '/'.join(os.getcwd().split('/')[:-1])
+    print(root)
+    config_path = os.path.join(root, 'configs', config + '.yml')
     with open(config_path) as file:
         config = yaml.load(file)
     return config

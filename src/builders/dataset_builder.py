@@ -17,7 +17,9 @@ def build(data_config):
         log.error('Specify a data name')
 
     data_name = data_config['name']
-    root_dir = data_config.get('rood_dir', 'data/nacti')
+
+    data_dir = data_config.get('data_dir', '/mnt/nfs/work1/ds4cg/wbae/data/nacti')
+
     batch_size = data_config.get('batch_size', 128)
     num_workers = data_config.get('num_workers', 4)
     label_type = data_config.get('label_type', 'binary')
@@ -28,7 +30,7 @@ def build(data_config):
     	])
 
     # TODO: add eval using tnc dataset
-    dataset = DATASETS[data_name](root_dir=root_dir,
+    dataset = DATASETS[data_name](data_dir=data_dir,
     							  label_type=label_type,
     							  transform=transform)
     train_size = int(0.8 * len(dataset))
