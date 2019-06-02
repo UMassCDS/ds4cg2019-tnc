@@ -1,4 +1,5 @@
-
 data/*
 *.pyc
 .cenv
+scripts/*.out
+__pycache__/
