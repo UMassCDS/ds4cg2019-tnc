@@ -1,4 +1,5 @@
 import torch.nn as nn
+
 from src.utils.util import log
 
 CRITERIONS = {
