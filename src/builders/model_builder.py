@@ -6,7 +6,7 @@ from src.utils.util import log
 
 # TODO: upgrade torchvision to the latest version - mobilenet and resentxt is not available for 0.3.0 version
 SUPERVISED_MODELS = {
-    'alexnet': models.alexnet, 
+    'alexnet': models.alexnet,
     'vgg11': models.vgg11_bn,
     'vgg13': models.vgg13_bn,
     'vgg16': models.vgg16_bn,
@@ -33,13 +33,13 @@ def build(model_config):
     if 'name' not in model_config:
         log.error('Specify a model name')
     model_name = model_config['name']
-        
+
     if model_name in SUPERVISED_MODELS:
         log.infov('{} model is built'.format(model_name.upper()))
         return build_supervised_model(model_name, model_config)
     elif model_name in SEMI_MODELS:
-    	log.infov('{} model is built'.format(model_name.upper()))
-    	return build_semi_model(model_name, model_config)
+        log.infov('{} model is built'.format(model_name.upper()))
+        return build_semi_model(model_name, model_config)
     else:
         SUPERVISED_MODELS.update(SEMI_MODELS)
         log.error('Enter valid model name among {}'.format(SUPERVISED_MODELS))
@@ -56,16 +56,16 @@ def build_supervised_model(model_name, model_config):
 
     # build a model
     model = SUPERVISED_MODELS[model_name](pretrained=False) # imagenet pretrained is False
-        
+
     # load a pretrained model
     pretrained = model_config.get('pretrained', False)
     if pretrained:
-        path = model_confg['checkpoint_path']
+        path = model_config['checkpoint_path']
         checkpoint = torch.load(path)
         model.load_state_dict(checkpoint)
         log.infov('Checkpoint is loaded')
         misc['checkpoint'] = checkpoint
-    
+
     # freeze parameters except the last layer (classifier)
     freeze = model_config.get('freeze', False)
     if freeze:
