@@ -13,8 +13,8 @@ train: &train
   optimizer: &optimizer
     name: rmsprop
     lr: 0.001
-    alpha:0.99
-    eps: 1e-06
+    alpha: 0.99
+    eps: 0.000001
     weight_decay: 0.0
 
   criterion: &criterion
