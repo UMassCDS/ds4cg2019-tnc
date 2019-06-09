@@ -18,8 +18,14 @@ class BaseEngine(object):
     def __init__(self, config, tag):
         self.config = load_config(config)
         self.tag = generate_tag(tag)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(device)
+
+        if device == "cpu":
+            log.warn("GPU is not available. Please check the configuration.")
+        else:
+            log.ward("GPU is available.")
 
     def train(self):
         self._train(self.config["train"])
@@ -51,6 +57,9 @@ class Engine(BaseEngine):
         # build dataloader/model
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
+        if torch.cuda.device_count() > 1:
+            self.model = torch.nn.DataParallel(self.model)
+            log.warn("{} GPUs will be used.".format(torch.cuda.device_count()))
         self.model.to(self.device)
 
         # misc information
