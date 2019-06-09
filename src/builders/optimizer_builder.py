@@ -3,7 +3,7 @@ from src.utils.util import log
 
 OPTIMIZERS = {
     'sgd': optim.SGD,
-    'rmsrpop': optim.RMSprop,
+    'rmsprop': optim.RMSprop,
     'adam': optim.Adam,
 }
 

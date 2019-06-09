@@ -25,7 +25,7 @@ class BaseEngine(object):
         if device == "cpu":
             log.warn("GPU is not available. Please check the configuration.")
         else:
-            log.ward("GPU is available.")
+            log.warn("GPU is available.")
 
     def train(self):
         self._train(self.config["train"])
@@ -167,15 +167,15 @@ class Engine(BaseEngine):
             loss = self.criterion(outputs, labels)
 
             # Use softmax when the num of classes > 1 else sigmoid
-            if self.num_clsses > 1:
+            if self.num_classes > 1:
                 _, predictions = torch.max(outputs, 1)
             else:
                 probabilities = torch.sigmoid(outputs)
-                predictions = torch.gt(probabilities, 0.5)
+                predictions = torch.gt(probabilities, 0.5).float()
 
             # Statistics
             total_loss += loss.item() * inputs.size(0)
-            num_corrects += torch.sum(predictions == labels.data)
+            num_corrects += torch.sum((predictions == labels).int())
 
         val_loss = total_loss / len(self.dataloader['val'].dataset)
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
