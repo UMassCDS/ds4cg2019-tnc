@@ -20,8 +20,8 @@ eval: &eval
   use_roc: True
 
 data: &data
-  name: nacti
-  data_dir: '../data/nacti'
+  name: wildcam
+  root_dir: '/mnt/nfs/work1/ds4cg'
   batch_size: 128
   num_workers: 4
   label_type: binary
