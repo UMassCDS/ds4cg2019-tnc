@@ -19,6 +19,6 @@ while [[ $# -gt 1 ]]
   shift # past argument or value
   done
 
-python ../eval.py \
+python eval.py \
     --config=${CONFIG} \
     --tag=${TAG}

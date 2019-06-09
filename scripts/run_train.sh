@@ -19,6 +19,6 @@ while [[ $# -gt 1 ]]
   shift # past argument or value
   done
 
-python ../train.py \
+python train.py \
     --config=${CONFIG} \
     --tag=${TAG}
