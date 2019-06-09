@@ -4,9 +4,11 @@ model: &model
   freeze: False
   num_classes: 1
   checkpoint_path: ''
+  # checkpoint_path: 'checkpoints/resnet18/resnet18_no_norm.pth'
 
 train: &train
   num_epochs: 100
+  save_dir: 'checkpoints/resnet18'
 
   optimizer: &optimizer
     name: sgd
@@ -22,7 +24,7 @@ eval: &eval
 data: &data
   name: wildcam
   root_dir: '/mnt/nfs/work1/ds4cg'
-  batch_size: 128
+  batch_size: 64
   num_workers: 4
   label_type: binary
 
