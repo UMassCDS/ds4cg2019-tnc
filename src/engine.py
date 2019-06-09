@@ -43,7 +43,6 @@ class Engine(BaseEngine):
 
     def __init__(self, config, tag):
         super(Engine, self).__init__(config, tag)
-        # TODO: implement dataset_builder
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
         self.model.to(self.device)

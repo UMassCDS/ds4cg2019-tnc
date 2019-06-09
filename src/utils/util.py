@@ -61,6 +61,9 @@ def generate_tag(tag):
         log.warn("Tag '{}' is specified".format(tag))
     return tag
 
+def normalize_batch(batch):
+    return
+
 # save pytorch model
 # ==================
 
