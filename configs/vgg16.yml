@@ -1,5 +1,5 @@
 model: &model
-  name: resnet18
+  name: vgg16
   pretrained: False
   freeze: False
   num_classes: 1
@@ -11,8 +11,10 @@ train: &train
   save_dir: 'checkpoints/resnet18'
 
   optimizer: &optimizer
-    name: sgd
+    name: rmsprop
     lr: 0.001
+    alpha:0.99
+    eps: 1e-06
     weight_decay: 0.0
 
   criterion: &criterion
@@ -24,7 +26,7 @@ eval: &eval
 data: &data
   name: wildcam
   root_dir: '/mnt/nfs/work1/ds4cg'
-  batch_size: 64
+  batch_size: 128
   num_workers: 4
   label_type: binary
 
