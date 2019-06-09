@@ -1,15 +1,12 @@
 from __future__ import print_function
 from __future__ import division
 
-import os
-import pdb
-import copy
 import time
 from abc import abstractmethod
 import torch
 import torchvision
 
-from src.utils.util import log, load_config, generate_tag, save_model, save_roc
+from src.utils.util import log, load_config, generate_tag, save_path, save_roc, setup
 from src.builders import model_builder, dataset_builder, optimizer_builder, criterion_builder
 
 log.info("PyTorch Version: {}".format(torch.__version__))
@@ -31,6 +28,10 @@ class BaseEngine(object):
     def _train(self, train_config):
         pass
 
+    @abstractmethod
+    def _val(self):
+        pass
+
     def eval(self):
         self._eval(self.config["eval"])
 
@@ -38,25 +39,36 @@ class BaseEngine(object):
     def _eval(self, eval_config):
         pass
 
+    @abstractmethod
+    def _save_model(self, save_dir, epoch):
+        pass
 
 class Engine(BaseEngine):
 
     def __init__(self, config, tag):
         super(Engine, self).__init__(config, tag)
+
+        # build dataloader/model
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
         self.model.to(self.device)
 
+        # misc information
+        self.model_name = misc['model_name']
         self.num_classes = misc['num_classes']
         self.checkpoint = misc.get('checkpoint', None)
         self.is_inception = misc.get('is_inception', False)
 
+        # build optimizer/criterion
         self.optimizer = optimizer_builder.build(
             self.config['train'], self.model.parameters(), self.checkpoint)
         self.criterion = criterion_builder.build(self.config['train'])
 
+        setup(self.config['train'])
 
     def _train(self, train_config):
+        save_dir = train_config.get('save_dir', 'checkpoints')
+
         start_epoch = 0 if self.checkpoint is None else self.checkpoint['epoch']
         num_epochs = train_config.get('num_epochs', 50)
         if num_epochs < start_epoch:
@@ -67,7 +79,6 @@ class Engine(BaseEngine):
             .format(num_epochs, start_epoch))
 
         val_accuracies = []
-        best_model = copy.deepcopy(self.model.state_dict())
         best_acc = 0.0
 
         for epoch in range(start_epoch, num_epochs):
@@ -77,16 +88,16 @@ class Engine(BaseEngine):
             time_elapsed = time.time() - train_start
             log.info(
                 'Epoch {} completed in {} - train loss: {:4f}'\
-                .format(epoch, time_elapsed, train_loss))
+                .format(epoch, time_elapsed, train_loss)
+            )
 
             val_start = time.time()
             val_loss, val_acc = self._val()
 
+            # save the best model
             if val_acc > best_acc:
                 best_acc = val_acc
-                best_model = copy.deepcopy(self.model.state_dict())
-                # TODO: implement save_model
-                save_model(best_model)
+                self._save_model(save_dir, epoch)
 
             val_accuracies.append(val_acc)
             time_elapsed = time.time() - val_start
@@ -130,8 +141,6 @@ class Engine(BaseEngine):
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i, num_batches, loss))
 
-            log.warn('TOTAL LOSS : {}'.format(total_loss))
-
         train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 
@@ -163,6 +172,7 @@ class Engine(BaseEngine):
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
         return val_loss, val_acc
 
+
     def _eval(self, eval_config):
         use_roc = eval_config.get('use_roc', False)
         total_loss, num_corrects = 0.0, 0
@@ -193,4 +203,14 @@ class Engine(BaseEngine):
         eval_loss = total_loss / len(self.dataloader['eval'].dataset)
         eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
         return eval_loss, eval_acc
+
+
+    def _save_model(self, save_dir, epoch):
+        checkpoint_path = save_path(save_dir, self.model_name, self.tag)
+
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict()
+        }, checkpoint_path)
 

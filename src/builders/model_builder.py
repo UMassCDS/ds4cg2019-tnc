@@ -56,6 +56,7 @@ def build_supervised_model(model_name, model_config):
 
     # build a model
     model = SUPERVISED_MODELS[model_name](pretrained=False) # imagenet pretrained is False
+    misc['model_name'] = model_name
 
     # load a pretrained model
     pretrained = model_config.get('pretrained', False)
@@ -111,8 +112,8 @@ def modify_classifier(model, model_name, num_classes):
     elif 'resnetxt' in model_name:
         raise NotImplementedError()
     else:
-    	log.error('Invalid model name {} for modifying a classifier'.format(model_name))
-    	exit()
+        log.error('Invalid model name {} for modifying a classifier'.format(model_name))
+        exit()
     return model
 
 # Semi-supervised Model
