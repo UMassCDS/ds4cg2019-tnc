@@ -67,7 +67,7 @@ class TNC(Dataset):
             sample = self.transform(sample)
         return
 
-class WIlDCAM(Dataset):
+class WILDCAM(Dataset):
     # 0: not animal, 1: animal
     BINARY = {0: 0, 1: 1}
     LABEL_TYPES = {'binary': BINARY}

@@ -1,7 +1,10 @@
 import os
 import yaml
 import logging
+import torch
+from torchvision import transforms
 from colorlog import ColoredFormatter
+
 
 # Logging
 # =======
@@ -43,8 +46,7 @@ logging.Logger.infov = _infov
 # =============
 
 def load_config(config):
-    root = '/'.join(os.getcwd().split('/')[:-1])
-    print(root)
+    root = os.getcwd()
     config_path = os.path.join(root, 'configs', config + '.yml')
     with open(config_path) as file:
         config = yaml.load(file)
@@ -61,16 +63,28 @@ def generate_tag(tag):
         log.warn("Tag '{}' is specified".format(tag))
     return tag
 
-def normalize_batch(batch):
-    return
+def setup(train_config):
+    save_dir = train_config.get('save_dir', 'checkpoints')
+    os.makedirs(save_dir, exist_ok=True)
+    log.info("Directory {} to save checkpoints is ready".format(save_dir))
 
-# save pytorch model
-# ==================
-
-def save_model(model):
-    raise NotImplementedError()
-
+def save_path(save_dir, model_name, tag):
+    checkpoint = model_name + '_' + tag + '.pth'
+    return os.path.join(save_dir, checkpoint)
 
 def save_roc(probs, labels):
     raise NotImplementedError()
 
+
+# Custom transforms
+# =================
+
+class NormalizePerImage(object):
+    """Normalize the given image using its mean and standard deviation
+    """
+
+    def __call__(self, image_tensor):
+        mean = torch.mean(image_tensor, dim=(1,2), keepdim=True)
+        std = torch.std(image_tensor, dim=(1,2), keepdim=True)
+
+        return (image_tensor - mean) / std

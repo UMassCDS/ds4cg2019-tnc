@@ -16,6 +16,6 @@ def build(data_config):
         'label_type': data_config.get('label_type', 'binary')
     }
 
-    dataloader = load(data_params)
+    dataloader = load(**data_params)
     return dataloader
 

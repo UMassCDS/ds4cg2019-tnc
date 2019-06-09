@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 
 from src.data.datasets import NACTI, TNC, WILDCAM
-from src.utils.util import log
+from src.utils.util import log, NormalizePerImage
 
 
 DATASETS = {
@@ -40,11 +40,13 @@ def load(data_name, root_dir, batch_size, num_workers, label_type):
             transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(0.5),
             transforms.ColorJitter(brightness=0.2),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            NormalizePerImage()
         ])
         val_transform = transforms.Compose([
             transforms.Resize((224, 224)),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            NormalizePerImage()
         ])
 
         train_json = 'train_annotations.json'
@@ -73,10 +75,6 @@ def load(data_name, root_dir, batch_size, num_workers, label_type):
                   'val': val_dataloader,
                   'eval': eval_dataloader}
     return dataloader
-
-
-
-
 
 
 
