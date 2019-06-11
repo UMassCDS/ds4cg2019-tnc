@@ -23,8 +23,8 @@ eval: &eval
 
 data: &data
   name: wildcam
-  root_dir: '/mnt/nfs/work1/ds4cg'
-  batch_size: 16
-  num_workers: 4
+  root_dir: 'data'
+  batch_size: 8
+  num_workers: 1
   label_type: binary
 

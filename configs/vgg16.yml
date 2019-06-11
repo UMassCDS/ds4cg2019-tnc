@@ -26,8 +26,8 @@ eval: &eval
   use_roc: False
 
 data: &data
-  root_dir: '/mnt/nfs/work1/ds4cg'
-  batch_size: 128
-  num_workers: 4
+  root_dir: 'data'
+  batch_size: 16
+  num_workers: 1
   label_type: binary
 
