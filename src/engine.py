@@ -27,8 +27,7 @@ class BaseEngine(object):
         elif self.mode == 'eval':
             data_name = self.config['eval']['data']
         else:
-            log.error('Specify right mode - train, eval')
-            exit()
+            log.error('Specify right mode - train, eval'); exit()
 
         self.config['data']['name'] = data_name
         self.config['data']['mode'] = mode
@@ -73,7 +72,7 @@ class Engine(BaseEngine):
         # TODO: change dataset_builder
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
-        
+
         if torch.cuda.device_count() > 1:
             self.model = torch.nn.DataParallel(self.model)
             log.warn("{} GPUs will be used.".format(torch.cuda.device_count()))
@@ -201,13 +200,13 @@ class Engine(BaseEngine):
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
         return val_loss, val_acc
 
-   # TODO: eval with and without label
-   def _eval(self, eval_config):
+    # TODO: eval with and without label
+    def _eval(self, eval_config):
         data_name = eval_config['data']
         # check whether labels are available for evaluation
         is_label_available = util.check_eval_type(data_name)
         use_roc = eval_config.get('use_roc', False)
-        
+
         prediction_results = {}
         total_loss, num_corrects = 0.0, 0
 
@@ -239,17 +238,19 @@ class Engine(BaseEngine):
                 num_corrects += torch.sum(predictions == labels.data)
             else:
                 # TODO: save prediction results
+                return
 
         if is_label_available:
             eval_loss = total_loss / len(self.dataloader['eval'].dataset)
             eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
             return eval_loss, eval_acc
         else:
-            prediction_results
-            save_predictions(prediction_results)
-            log.infov('Prediction results for {} is saved in {}'.format(data_name, save_path))
+            #prediction_results
+            return
+            #save_predictions(prediction_results)
+            #log.infov('Prediction results for {} is saved in {}'.format(data_name, save_path))
 
-        
+
 
     def _save_model(self, save_dir, epoch, additional_tag=None):
         if additional_tag:

@@ -10,7 +10,7 @@ def build(data_config):
 
     data_params = {
         'data_name': data_config['name'],
-        'mode': data_config['mode']
+        'mode': data_config['mode'],
         'root_dir': data_config.get('root_dir', '/mnt/nfs/work1/ds4cg'),
         'batch_size': data_config.get('batch_size', 128),
         'num_workers': data_config.get('num_workers', 4),

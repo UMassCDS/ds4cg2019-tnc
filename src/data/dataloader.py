@@ -40,7 +40,7 @@ def load_nacti(mode, data_name, root_dir, batch_size, num_workers, label_type):
     Only train and validation sets are available at this point.
     '''
     data_dir = os.path.join(root_dir, data_name)
-    
+
     transform = transforms.Compose([
       transforms.Resize((224, 224)),
       transforms.ToTensor()
@@ -69,7 +69,7 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
     '''
     data_dir = os.path.join(root_dir, data_name)
 
-    if mode == 'train'
+    if mode == 'train':
       train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomHorizontalFlip(0.5),
@@ -77,7 +77,7 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
         transforms.ToTensor(),
         NormalizePerImage()
       ])
-          
+
       val_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
@@ -87,10 +87,10 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
       train_json = 'train_annotations.json'
       val_json = 'val_annotations.json'
       train_dataset = DATASETS[data_name](data_dir=data_dir,
-                                          metadata_file=train_json, label_type=label_type, 
+                                          metadata_file=train_json, label_type=label_type,
                                           transform=train_transform)
       val_dataset = DATASETS[data_name](data_dir=data_dir,
-                                        metadata_file=val_json, label_type=label_type, 
+                                        metadata_file=val_json, label_type=label_type,
                                         transform=val_transform)
       train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                                     shuffle=True, num_workers=num_workers)

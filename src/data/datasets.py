@@ -57,14 +57,14 @@ class TNC(Dataset):
     MODES = {'train', 'eval'}
 
     def __init__(self, data_dir, metadata_file, transform=None, mode='train'):
-        if mode not in MODES:
+        if mode not in self.MODES:
             log.error('Specify right mode for WILDCAM dataset - train, eval'); exit()
         self.mode = mode
         self.data_dir = data_dir
 
         if self.mode != 'eval':
-          self.metadata = metadat{a_file
-          self.transform = transf}orm
+          self.metadata = metadata_file
+          self.transform = transform
 
     def __len__(self):
         return
@@ -84,7 +84,7 @@ class WILDCAM(Dataset):
 
     def __init__(self, data_dir, metadata_file, label_type, transform=None, mode='train'):
         # train / eval
-        if mode not in MODES:
+        if mode not in self.MODES:
           log.error('Specify right mode for WILDCAM dataset - train, eval'); exit()
         self.mode = mode
         self.data_dir = data_dir
@@ -100,6 +100,7 @@ class WILDCAM(Dataset):
             log.error('Specify right label type for WILDCAM dataset - binary')
           self.label_map = self.LABEL_TYPES[label_type]
         else:
+          eval_dir = os.path.join(data_dir, 'test')
           self.metadata = fnmatch.filter(os.listdir(eval_dir), '*.jpg')
 
         # transformers
@@ -109,7 +110,7 @@ class WILDCAM(Dataset):
     def __len__(self):
         if self.mode == 'eval':
             length = len(self.metadata)
-        else: 
+        else:
             length = len(self.metadata['annotations'])
         return length
 
@@ -131,7 +132,7 @@ class WILDCAM(Dataset):
 
         if self.transform:
             image = self.transform(image)
-            
+
         return (image, label)
 
 
