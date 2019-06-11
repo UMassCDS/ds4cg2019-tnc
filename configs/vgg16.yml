@@ -7,6 +7,7 @@ model: &model
   # checkpoint_path: 'checkpoints/resnet18/resnet18_no_norm.pth'
 
 train: &train
+  data: wildcam
   num_epochs: 100
   save_dir: 'checkpoints/resnet18'
 
@@ -21,10 +22,10 @@ train: &train
     name: cross_entropy
 
 eval: &eval
+  data: wildcam
   use_roc: False
 
 data: &data
-  name: wildcam
   root_dir: '/mnt/nfs/work1/ds4cg'
   batch_size: 128
   num_workers: 4

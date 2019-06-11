@@ -63,18 +63,32 @@ def generate_tag(tag):
         log.warn("Tag '{}' is specified".format(tag))
     return tag
 
+
 def setup(train_config):
     save_dir = train_config.get('save_dir', 'checkpoints')
     os.makedirs(save_dir, exist_ok=True)
     log.info("Directory {} to save checkpoints is ready".format(save_dir))
 
+
 def save_path(save_dir, model_name, tag):
     checkpoint = model_name + '_' + tag + '.pth'
     return os.path.join(save_dir, checkpoint)
 
+
 def save_roc(probs, labels):
     raise NotImplementedError()
 
+
+def check_eval_type(data_name):
+    if data_name == 'wildcam':
+        is_label_available = True
+    elif data_name in ['nacti', 'tnc']:
+        is_label_available =False
+    else:
+        log.error('Specify right data name - nacti, wildcam, tnc')
+        exit()
+    return is_label_available
+    
 
 # Custom transforms
 # =================

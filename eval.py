@@ -11,5 +11,5 @@ if __name__=='__main__':
                         help="tag to discern evaluation instances")
     args = parser.parse_args()
 
-    engine = Engine(args.config, args.tag)
+    engine = Engine(mode='eval', config=args.config, tag=args.tag)
     engine.eval()

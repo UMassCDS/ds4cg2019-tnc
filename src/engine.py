@@ -6,7 +6,8 @@ from abc import abstractmethod
 import torch
 import torchvision
 
-from src.utils.util import log, load_config, generate_tag, save_path, save_roc, setup
+from src.utils import util
+from src.utils.util import log
 from src.builders import model_builder, dataset_builder, optimizer_builder, criterion_builder
 
 log.info("PyTorch Version: {}".format(torch.__version__))
@@ -15,10 +16,24 @@ log.info("Torchvision Version: {}".format(torchvision.__version__))
 
 class BaseEngine(object):
 
-    def __init__(self, config, tag):
-        self.config = load_config(config)
-        self.tag = generate_tag(tag)
+    def __init__(self, mode, config, tag):
+        self.mode = mode
+        self.config = util.load_config(config)
+        self.tag = util.generate_tag(tag)
 
+        # store data name to data config depending on which mode we are on
+        if self.mode == 'train':
+            data_name = self.config['train']['data']
+        elif self.mode == 'eval':
+            data_name = self.config['eval']['data']
+        else:
+            log.error('Specify right mode - train, eval')
+            exit()
+
+        self.config['data']['name'] = data_name
+        self.config['data']['mode'] = mode
+
+        # determine which device to use - cpu or gpu
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
 
@@ -51,12 +66,14 @@ class BaseEngine(object):
 
 class Engine(BaseEngine):
 
-    def __init__(self, config, tag):
-        super(Engine, self).__init__(config, tag)
+    def __init__(self, mode, config, tag):
+        super(Engine, self).__init__(mode, config, tag)
 
         # build dataloader/model
+        # TODO: change dataset_builder
         self.dataloader = dataset_builder.build(self.config['data'])
         self.model, misc = model_builder.build(self.config['model'])
+        
         if torch.cuda.device_count() > 1:
             self.model = torch.nn.DataParallel(self.model)
             log.warn("{} GPUs will be used.".format(torch.cuda.device_count()))
@@ -68,12 +85,14 @@ class Engine(BaseEngine):
         self.checkpoint = misc.get('checkpoint', None)
         self.is_inception = misc.get('is_inception', False)
 
-        # build optimizer/criterion
-        self.optimizer = optimizer_builder.build(
-            self.config['train'], self.model.parameters(), self.checkpoint)
-        self.criterion = criterion_builder.build(self.config['train'])
+        if self.mode == 'train':
+            # build optimizer/criterion
+            self.optimizer = optimizer_builder.build(
+                self.config['train'], self.model.parameters(), self.checkpoint)
+            self.criterion = criterion_builder.build(self.config['train'])
+            # setup a directory to store checkpoints
+            util.setup(self.config['train'])
 
-        setup(self.config['train'])
 
     def _train(self, train_config):
         save_dir = train_config.get('save_dir', 'checkpoints')
@@ -93,6 +112,7 @@ class Engine(BaseEngine):
         for epoch in range(start_epoch, num_epochs):
             train_start = time.time()
             train_loss = self._train_one_epoch()
+            self._save_model(save_dir, epoch)
 
             time_elapsed = time.time() - train_start
             log.info(
@@ -106,7 +126,7 @@ class Engine(BaseEngine):
             # save the best model
             if val_acc > best_acc:
                 best_acc = val_acc
-                self._save_model(save_dir, epoch)
+                self._save_model(save_dir, epoch, additional_tag='best')
 
             val_accuracies.append(val_acc)
             time_elapsed = time.time() - val_start
@@ -181,41 +201,63 @@ class Engine(BaseEngine):
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
         return val_loss, val_acc
 
-
-    def _eval(self, eval_config):
+   # TODO: eval with and without label
+   def _eval(self, eval_config):
+        data_name = eval_config['data']
+        # check whether labels are available for evaluation
+        is_label_available = util.check_eval_type(data_name)
         use_roc = eval_config.get('use_roc', False)
+        
+        prediction_results = {}
         total_loss, num_corrects = 0.0, 0
+
         self.model.eval()
 
-        inputs, labels = self.dataloader['eval'].next()
-        inputs = inputs.to(self.device)
-        labels = labels.to(self.device).unsqueeze(-1).float()
+        for inputs, labels in self.dataloader['eval']:
+            inputs = inputs.to(self.device)
+            if is_label_available:
+                labels = labels.to(self.device).unsqueeze(-1).float()
 
-        # Forward propagation
-        outputs = self.model(inputs)
-        loss = self.criterion(outputs, labels)
+            # Forward propagation
+            outputs = self.model(inputs)
+            if is_label_available:
+                loss = self.criterion(outputs, labels)
 
-        # Use softmax when the num of classes > 1 else sigmoid
-        if self.num_clsses > 1:
-            _, predictions = torch.max(outputs, 1)
+            # Use softmax when the num of classes > 1 else sigmoid
+            if self.num_clsses > 1:
+                _, predictions = torch.max(outputs, 1)
+            else:
+                probabilities = torch.sigmoid(outputs)
+                predictions = torch.gt(probabilities, 0.5)
+                if use_roc and is_label_available:
+                    # TODO: implement save_roc
+                    util.save_roc(probabilities, labels)
+
+            # Statistics
+            if is_label_available:
+                total_loss += loss.item() * inputs.size(0)
+                num_corrects += torch.sum(predictions == labels.data)
+            else:
+                # TODO: save prediction results
+
+        if is_label_available:
+            eval_loss = total_loss / len(self.dataloader['eval'].dataset)
+            eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
+            return eval_loss, eval_acc
         else:
-            probabilities = torch.sigmoid(outputs)
-            predictions = torch.gt(probabilities, 0.5)
-            if use_roc:
-                # TODO: implement save_roc
-                save_roc(probabilities, labels)
+            prediction_results
+            save_predictions(prediction_results)
+            log.infov('Prediction results for {} is saved in {}'.format(data_name, save_path))
 
-        # Statistics
-        total_loss += loss.item() * inputs.size(0)
-        num_corrects += torch.sum(predictions == labels.data)
+        
 
-        eval_loss = total_loss / len(self.dataloader['eval'].dataset)
-        eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
-        return eval_loss, eval_acc
+    def _save_model(self, save_dir, epoch, additional_tag=None):
+        if additional_tag:
+            tag = self.tag + '_' + additional_tag
+        else:
+            tag = self.tag
 
-
-    def _save_model(self, save_dir, epoch):
-        checkpoint_path = save_path(save_dir, self.model_name, self.tag)
+        checkpoint_path = util.save_path(save_dir, self.model_name, tag)
 
         torch.save({
             'epoch': epoch,

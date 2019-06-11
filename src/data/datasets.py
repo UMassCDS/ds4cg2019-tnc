@@ -1,6 +1,7 @@
 import os
-from PIL import Image
 import json
+import fnmatch
+from PIL import Image
 from torch.utils.data import Dataset
 
 from src.utils.util import log
@@ -51,11 +52,19 @@ class NACTI(Dataset):
         return image, label
 
 class TNC(Dataset):
+    BINARY = {0: 0, 1: 1}
+    LABEL_TYPES = {'binary': BINARY}
+    MODES = {'train', 'eval'}
 
-    def __init__(self, data_dir, json_file, transform=None):
+    def __init__(self, data_dir, metadata_file, transform=None, mode='train'):
+        if mode not in MODES:
+            log.error('Specify right mode for WILDCAM dataset - train, eval'); exit()
+        self.mode = mode
         self.data_dir = data_dir
-        self.json_file = json_file
-        self.transform = transform
+
+        if self.mode != 'eval':
+          self.metadata = metadat{a_file
+          self.transform = transf}orm
 
     def __len__(self):
         return
@@ -71,39 +80,58 @@ class WILDCAM(Dataset):
     # 0: not animal, 1: animal
     BINARY = {0: 0, 1: 1}
     LABEL_TYPES = {'binary': BINARY}
+    MODES = {'train', 'eval'}
 
-    def __init__(self, data_dir, metadata_file, label_type, transform=None):
+    def __init__(self, data_dir, metadata_file, label_type, transform=None, mode='train'):
+        # train / eval
+        if mode not in MODES:
+          log.error('Specify right mode for WILDCAM dataset - train, eval'); exit()
+        self.mode = mode
         self.data_dir = data_dir
 
-        # load meta data
-        meatadata_path = os.path.join(self.data_dir, metadata_file)
-        with open(meatadata_path, 'r') as f:
+        if self.mode != 'eval':
+          # load meta data
+          meatadata_path = os.path.join(self.data_dir, metadata_file)
+          with open(meatadata_path, 'r') as f:
             self.metadata = json.load(f)
 
-        # initialize label map from the original label to a new label
-        if label_type not in self.LABEL_TYPES:
+          # initialize label map from the original label to a new label
+          if label_type not in self.LABEL_TYPES:
             log.error('Specify right label type for WILDCAM dataset - binary')
-        self.label_map = self.LABEL_TYPES[label_type]
+          self.label_map = self.LABEL_TYPES[label_type]
+        else:
+          self.metadata = fnmatch.filter(os.listdir(eval_dir), '*.jpg')
 
-        # transformer
+        # transformers
         self.transform = transform
 
+    # TODO: verify eval part
     def __len__(self):
-        return len(self.metadata['annotations'])
+        if self.mode == 'eval':
+            length = len(self.metadata)
+        else: 
+            length = len(self.metadata['annotations'])
+        return length
 
     def __getitem__(self, idx):
-        # read an image
-        image_path = os.path.join(self.data_dir,
-                                  self.metadata['images'][idx]['file_name'])
-        image = Image.open(image_path)
+        # In eval mode, labels are not available
+        if self.mode == 'eval':
+            image_path = os.path.join(self.data_dir,
+                                      self.metadata[idx])
+            # image id
+            label = self.metadata[idx].split('.')[0]
+        else:
+            image_path = os.path.join(self.data_dir,
+                                      self.metadata['images'][idx]['file_name'])
+            # get a label
+            original_label = self.metadata['annotations'][idx]['category_id']
+            label = self.label_map[original_label]
 
-        # get a label
-        original_label = self.metadata['annotations'][idx]['category_id']
-        label = self.label_map[original_label]
+        image = Image.open(image_path)
 
         if self.transform:
             image = self.transform(image)
-
-        return image, label
+            
+        return (image, label)
 
 

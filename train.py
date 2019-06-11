@@ -11,5 +11,5 @@ if __name__=='__main__':
                         help="tag to discern training instances")
     args = parser.parse_args()
 
-    engine = Engine(args.config, args.tag)
+    engine = Engine(mode='train', config=args.config, tag=args.tag)
     engine.train()
