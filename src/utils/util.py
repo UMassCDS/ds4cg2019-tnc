@@ -1,4 +1,5 @@
 import os
+import csv
 import yaml
 import logging
 import torch
@@ -45,9 +46,9 @@ logging.Logger.infov = _infov
 # general utils
 # =============
 
-def load_config(config):
+def load_config(config_name):
     root = os.getcwd()
-    config_path = os.path.join(root, 'configs', config + '.yml')
+    config_path = os.path.join(root, 'configs', config_name + '.yml')
     with open(config_path) as file:
         config = yaml.load(file)
     return config
@@ -64,15 +65,35 @@ def generate_tag(tag):
     return tag
 
 
-def setup(train_config):
-    save_dir = train_config.get('save_dir', 'checkpoints')
-    os.makedirs(save_dir, exist_ok=True)
-    log.info("Directory {} to save checkpoints is ready".format(save_dir))
+def setup(mode, model_name, tag):
+    directory = dir_path(mode, model_name, tag)
+    os.makedirs(directory, exist_ok=True)
+
+    log.info("Directory {} to save checkpoints/results is ready".format(directory))
 
 
-def save_path(save_dir, model_name, tag):
-    checkpoint = model_name + '_' + tag + '.pth'
-    return os.path.join(save_dir, checkpoint)
+def dir_path(mode, model_name, tag):
+    if mode == 'train':
+        root = 'checkpoints'
+    else:
+        root = 'results'
+
+    directory = os.path.join(root, model_name + '_' + tag)
+    return directory
+
+
+def save_results(mode, model_name, tag, data_name, results):
+    headers = {
+        'wildcam': ['id', 'animal_present']
+    }
+    results = headers[data_name] + results
+
+    save_dir = dir_path(mode, model_name, tag)
+    save_path = os.path.join(save_dir, 'results.csv')
+
+    with open(save_path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(results)
 
 
 def save_roc(probs, labels):
@@ -81,14 +102,13 @@ def save_roc(probs, labels):
 
 def check_eval_type(data_name):
     if data_name == 'wildcam':
-        is_label_available = True
+        is_label_available = False
     elif data_name in ['nacti', 'tnc']:
-        is_label_available =False
+        is_label_available = True
     else:
-        log.error('Specify right data name - nacti, wildcam, tnc')
-        exit()
+        log.error('Specify right data name - nacti, wildcam, tnc'); exit()
     return is_label_available
-    
+
 
 # Custom transforms
 # =================

@@ -105,7 +105,7 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
       ])
 
       eval_dataset = DATASETS[data_name](data_dir=data_dir,
-                                         metadata_file=None, label_typ=None,
+                                         metadata_file=None, label_type=None,
                                          transform=eval_transform, mode='eval')
       eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size,
                                    shuffle=False, num_workers=num_workers)

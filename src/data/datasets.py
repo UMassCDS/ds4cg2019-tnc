@@ -91,8 +91,8 @@ class WILDCAM(Dataset):
 
         if self.mode != 'eval':
           # load meta data
-          meatadata_path = os.path.join(self.data_dir, metadata_file)
-          with open(meatadata_path, 'r') as f:
+          metadata_path = os.path.join(self.data_dir, metadata_file)
+          with open(metadata_path, 'r') as f:
             self.metadata = json.load(f)
 
           # initialize label map from the original label to a new label
@@ -100,8 +100,8 @@ class WILDCAM(Dataset):
             log.error('Specify right label type for WILDCAM dataset - binary')
           self.label_map = self.LABEL_TYPES[label_type]
         else:
-          eval_dir = os.path.join(data_dir, 'test')
-          self.metadata = fnmatch.filter(os.listdir(eval_dir), '*.jpg')
+          self.data_dir = os.path.join(data_dir, 'test')
+          self.metadata = fnmatch.filter(os.listdir(self.data_dir), '*.jpg')
 
         # transformers
         self.transform = transform
