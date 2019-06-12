@@ -1,13 +1,11 @@
 model: &model
   name: vgg16
-  pretrained: False
-  freeze: False
   num_classes: 1
-  checkpoint_path: 'checkpoints/vgg16_test/checkpoint_0.pth'
 
 train: &train
   data: wildcam
   num_epochs: 100
+  checkpoint_path: 'checkpoints/vgg16_test/checkpoint_0.pth'
 
   optimizer: &optimizer
     name: rmsprop
@@ -26,6 +24,7 @@ train: &train
 eval: &eval
   data: wildcam
   use_roc: False
+  checkpoint_path: 'checkpoints/vgg16_test' # either checkpoint dir or path
 
 data: &data
   root_dir: 'data'
