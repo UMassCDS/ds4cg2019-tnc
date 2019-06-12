@@ -3,7 +3,6 @@ from __future__ import division
 
 import os
 import time
-from abc import abstractmethod
 import torch
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
@@ -67,28 +66,30 @@ class Engine(BaseEngine):
     def __init__(self, mode, config_name, tag):
         super(Engine, self).__init__(mode, config_name, tag)
 
-        # build dataloader/model
+        # build dataloader
         self.dataloader = dataset_builder.build(self.data_config)
-        self.model, misc = model_builder.build(self.model_config)
 
-        if torch.cuda.device_count() > 1:
-            self.model = torch.nn.DataParallel(self.model)
-            log.warn("{} GPUs will be used.".format(torch.cuda.device_count()))
+        # load checkpoint
+        if self.mode == 'train':
+            self.checkpoint = util.load_checkpoint(self.train_config['checkpoint_path'])
+        elif self.mode == 'eval':
+            self.checkpoint = util.load_checkpoint(self.eval_config['checkpoint_path'])
+
+        # build model
+        self.model = model_builder.build(self.model_config, self.checkpoint)
         self.model.to(self.device)
 
-        # misc information
-        self.model_name = misc['model_name']
-        self.num_classes = misc['num_classes']
-        self.checkpoint = misc.get('checkpoint', None)
-        self.is_inception = misc.get('is_inception', False)
-
+        # build optimizer/criterion
         if self.mode == 'train':
-            # build optimizer/criterion
             self.optimizer = optimizer_builder.build(
                 self.train_config, self.model.parameters(), self.checkpoint)
             self.scheduler = scheduler_builder.build(
                 self.train_config, self.optimizer, self.checkpoint)
             self.criterion = criterion_builder.build(self.train_config)
+
+        # misc information
+        self.model_name = self.model_config['name']
+        self.num_classes = self.model_config['num_classes']
 
         # setup a directory to store checkpoints or evaluation results
         util.setup(self.mode, self.model_name, self.tag)
@@ -150,17 +151,8 @@ class Engine(BaseEngine):
 
             self.optimizer.zero_grad()
 
-            # Forward propagation
-            if self.is_inception:
-                # Special case for inception because in training it has an auxiliary output
-                # In training time, we calculate the loss by summing the final and auxiliary output
-                # In inference, we only consider the final output
-                outputs, aux_outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels) + \
-                        0.4 * self.criterion(aux_outputs, labels)
-            else:
-                outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+            outputs = self.model(inputs)
+            loss = self.criterion(outputs, labels)
 
             # Backward propagation
             loss.backward()
@@ -174,6 +166,8 @@ class Engine(BaseEngine):
                 .format(i+1, num_batches, loss)
             )
             #self.writer.add_scalar('training_loss', loss, i)
+            if i == 10:
+                self._save_model(0)
         train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 
@@ -211,15 +205,21 @@ class Engine(BaseEngine):
         data_name = self.eval_config['data']
         is_label_available = util.check_eval_type(data_name)
 
+        num_batches = len(self.dataloader['eval'])
+        use_roc = self.eval_config.get('use_roc', False)
+
+        while True:
+            self._evaluate_once(data_name, is_label_available, num_batches, use_roc)
+            self._reload_model()
+
+
+    def _evaluate_once(self, data_name, is_label_available, num_batches, use_roc):
         if is_label_available:
             total_loss, num_corrects = 0.0, 0
         else:
             prediction_results = []
 
-        num_batches = len(self.dataloader['eval'])
-        use_roc = self.eval_config.get('use_roc', False)
         self.model.eval()
-
         for i, (inputs, labels) in enumerate(self.dataloader['eval']):
             inputs = inputs.to(self.device)
             if is_label_available:
@@ -257,13 +257,13 @@ class Engine(BaseEngine):
         if is_label_available:
             eval_loss = total_loss / len(self.dataloader['eval'].dataset)
             eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
-            return eval_loss, eval_acc
+            # TODO: add step
+            self.writer.add_scalar('eval accuracy', eval_acc)
         else:
             util.save_results(self.mode, self.model_name, self.tag,
                               data_name, prediction_results)
 
-
-
+    # TODO: create model saver/loader
     def _save_model(self, epoch=None):
         if epoch is not None:
             checkpoint_tag = str(epoch)
@@ -284,4 +284,12 @@ class Engine(BaseEngine):
             model_params['scheduler_state_dict'] = self.scheduler.state_dict()
 
         torch.save(model_params, checkpoint_path)
+
+
+    def _reload_model(self):
+        self.checkpoint = util.load_checkpoint(self.eval_config['checkpoint_path'])
+
+        # build model
+        self.model = model_builder.build(self.model_config, self.checkpoint)
+        self.model.to(self.device)
 

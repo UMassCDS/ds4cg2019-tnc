@@ -1,6 +1,8 @@
 import os
 import csv
 import yaml
+import time
+import fnmatch
 import logging
 import torch
 from torchvision import transforms
@@ -50,8 +52,76 @@ def load_config(config_name):
     root = os.getcwd()
     config_path = os.path.join(root, 'configs', config_name + '.yml')
     with open(config_path) as file:
-        config = yaml.load(file)
+        config = yaml.load(file, Loader=yaml.FullLoader)
     return config
+
+
+def load_checkpoint(checkpoint_loc):
+    if checkpoint_loc is None:
+        log.warn('No checkpoint is specified')
+        checkpoint = None
+    elif checkpoint_loc.endswith('.pth'):
+        checkpoint = torch.load(checkpoint_loc)
+    elif os.path.isdir(checkpoint_loc):
+        checkpoint = torch.load(latest_checkpoint(checkpoint_loc))
+    else:
+        log.error('Specify right checkpoint location')
+    return checkpoint
+
+
+def latest_checkpoint(checkpoint_dir):
+    is_new_checkpoint = False
+    last_checkpoint_path = read_last_checkpoint(checkpoint_dir)
+
+    while not is_new_checkpoint:
+        checkpoints = fnmatch.filter(os.listdir(checkpoint_dir), '*.pth')
+        tags = [checkpoint_path.split('/')[-1].split('_')[-1].split('.')[0]
+                for checkpoint_path in checkpoints]
+
+        index, highest_step = -1, -1
+        for i, tag in enumerate(tags):
+            try:
+                step = int(tag)
+                if step > highest_step:
+                    index = i
+            except:
+                continue
+
+        try:
+            last_step = int(last_checkpoint_path.split('/')[-1].split('_')[-1].split('.')[0])
+        except:
+            is_new_checkpoint = True
+
+        if not is_new_checkpoint and highest_step > last_step:
+            is_new_checkpoint = True
+
+        if not is_new_checkpoint:
+            log.warn('No new checkpoint is available with for 5 minutes')
+            time.sleep(300)
+
+    checkpoint_path = os.path.join(checkpoint_dir, checkpoints[index])
+    write_last_checkpoint(checkpoint_dir, checkpoint_path)
+    log.infov('Loading {}'.format(checkpoint_path))
+
+    return checkpoint_path
+
+
+def read_last_checkpoint(checkpoint_dir):
+    checkpoint_history_path = os.path.join(checkpoint_dir, 'checkpoint')
+
+    if not os.path.exists(checkpoint_history_path):
+        return None
+
+    with open(checkpoint_history_path, 'r') as f:
+        checkpoint_history = f.readline()
+
+    return checkpoint_history
+
+
+def write_last_checkpoint(checkpoint_dir, checkpoint_path):
+    checkpoint_history_path = os.path.join(checkpoint_dir, 'checkpoint')
+    with open(checkpoint_history_path, 'w') as f:
+        f.write(checkpoint_path)
 
 
 def generate_tag(tag):
