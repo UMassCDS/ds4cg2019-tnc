@@ -1,7 +1,7 @@
 import argparse
 import torch
 
-from src.engines import Engine
+from src.engine import Engine
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -11,5 +11,5 @@ if __name__=='__main__':
                         help="tag to discern evaluation instances")
     args = parser.parse_args()
 
-    engine = Engine(mode='eval', config=args.config, tag=args.tag)
-    engine.eval()
+    engine = Engine(mode='eval', config_name=args.config, tag=args.tag)
+    engine.evaluate()

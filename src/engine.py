@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 
+import os
 import time
 from abc import abstractmethod
 import torch
@@ -8,7 +9,8 @@ import torchvision
 
 from src.utils import util
 from src.utils.util import log
-from src.builders import model_builder, dataset_builder, optimizer_builder, criterion_builder
+from src.builders import model_builder, dataset_builder, \
+    optimizer_builder, criterion_builder, scheduler_builder
 
 log.info("PyTorch Version: {}".format(torch.__version__))
 log.info("Torchvision Version: {}".format(torchvision.__version__))
@@ -16,21 +18,27 @@ log.info("Torchvision Version: {}".format(torchvision.__version__))
 
 class BaseEngine(object):
 
-    def __init__(self, mode, config, tag):
+    def __init__(self, mode, config_name, tag):
         self.mode = mode
-        self.config = util.load_config(config)
         self.tag = util.generate_tag(tag)
+
+        # assign configurations
+        config = util.load_config(config_name)
+        self.model_config = config['model']
+        self.train_config = config['train']
+        self.eval_config = config['eval']
+        self.data_config = config['data']
 
         # store data name to data config depending on which mode we are on
         if self.mode == 'train':
-            data_name = self.config['train']['data']
+            data_name = self.train_config['data']
         elif self.mode == 'eval':
-            data_name = self.config['eval']['data']
+            data_name = self.eval_config['data']
         else:
             log.error('Specify right mode - train, eval'); exit()
 
-        self.config['data']['name'] = data_name
-        self.config['data']['mode'] = mode
+        self.data_config['name'] = data_name
+        self.data_config['mode'] = mode
 
         # determine which device to use - cpu or gpu
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -42,36 +50,23 @@ class BaseEngine(object):
             log.warn("GPU is available.")
 
     def train(self):
-        self._train(self.config["train"])
+        raise NotImplementedError
 
-    @abstractmethod
-    def _train(self, train_config):
-        pass
+    def validate(self):
+        raise NotImplementedError
 
-    @abstractmethod
-    def _val(self):
-        pass
+    def evaluate(self):
+        raise NotImplementedError
 
-    def eval(self):
-        self._eval(self.config["eval"])
-
-    @abstractmethod
-    def _eval(self, eval_config):
-        pass
-
-    @abstractmethod
-    def _save_model(self, save_dir, epoch):
-        pass
 
 class Engine(BaseEngine):
 
-    def __init__(self, mode, config, tag):
-        super(Engine, self).__init__(mode, config, tag)
+    def __init__(self, mode, config_name, tag):
+        super(Engine, self).__init__(mode, config_name, tag)
 
         # build dataloader/model
-        # TODO: change dataset_builder
-        self.dataloader = dataset_builder.build(self.config['data'])
-        self.model, misc = model_builder.build(self.config['model'])
+        self.dataloader = dataset_builder.build(self.data_config)
+        self.model, misc = model_builder.build(self.model_config)
 
         if torch.cuda.device_count() > 1:
             self.model = torch.nn.DataParallel(self.model)
@@ -87,31 +82,36 @@ class Engine(BaseEngine):
         if self.mode == 'train':
             # build optimizer/criterion
             self.optimizer = optimizer_builder.build(
-                self.config['train'], self.model.parameters(), self.checkpoint)
-            self.criterion = criterion_builder.build(self.config['train'])
-            # setup a directory to store checkpoints
-            util.setup(self.config['train'])
+                self.train_config, self.model.parameters(), self.checkpoint)
+            self.scheduler = scheduler_builder.build(
+                self.train_config, self.optimizer, self.checkpoint)
+            self.criterion = criterion_builder.build(self.train_config)
+
+        # setup a directory to store checkpoints or evaluation results
+        util.setup(self.mode, self.model_name, self.tag)
 
 
-    def _train(self, train_config):
-        save_dir = train_config.get('save_dir', 'checkpoints')
-
+    def train(self):
         start_epoch = 0 if self.checkpoint is None else self.checkpoint['epoch']
-        num_epochs = train_config.get('num_epochs', 50)
+        num_epochs = self.train_config.get('num_epochs', 50)
         if num_epochs < start_epoch:
             num_epochs = start_epoch + 50
 
         log.info(
-            "Training for {} epochs starts from epoch {}"\
-            .format(num_epochs, start_epoch))
+            "Training for {} epochs starts from epoch {}".format(num_epochs, start_epoch)
+        )
 
         val_accuracies = []
         best_acc = 0.0
 
         for epoch in range(start_epoch, num_epochs):
             train_start = time.time()
+
+            if self.scheduler is not None:
+                self.scheduler.step()
+
             train_loss = self._train_one_epoch()
-            self._save_model(save_dir, epoch)
+            self._save_model(epoch)
 
             time_elapsed = time.time() - train_start
             log.info(
@@ -125,14 +125,15 @@ class Engine(BaseEngine):
             # save the best model
             if val_acc > best_acc:
                 best_acc = val_acc
-                self._save_model(save_dir, epoch, additional_tag='best')
+                self._save_model()
 
             val_accuracies.append(val_acc)
             time_elapsed = time.time() - val_start
 
             log.infov(
                 'Epoch {} completed in {} - val loss: {:4f}, val accuracy {:4f}'\
-                .format(epoch, time_elapsed, val_loss, val_acc))
+                .format(epoch, time_elapsed, val_loss, val_acc)
+            )
 
 
     def _train_one_epoch(self):
@@ -167,13 +168,18 @@ class Engine(BaseEngine):
 
             log.info(
                 'Train batch {}/{} - loss: {:4f}'\
-                .format(i, num_batches, loss))
+                .format(i+1, num_batches, loss)
+            )
+
+            # TODO: remove
+            if i == 10:
+                self._save_model(epoch=0)
 
         train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 
 
-    def _val(self):
+    def validate(self):
         total_loss, num_corrects = 0.0, 0
         self.model.eval()
 
@@ -200,19 +206,22 @@ class Engine(BaseEngine):
         val_acc = num_corrects.double() / len(self.dataloader['val'].dataset)
         return val_loss, val_acc
 
-    # TODO: eval with and without label
-    def _eval(self, eval_config):
-        data_name = eval_config['data']
+
+    def evaluate(self):
         # check whether labels are available for evaluation
+        data_name = self.eval_config['data']
         is_label_available = util.check_eval_type(data_name)
-        use_roc = eval_config.get('use_roc', False)
 
-        prediction_results = {}
-        total_loss, num_corrects = 0.0, 0
+        if is_label_available:
+            total_loss, num_corrects = 0.0, 0
+        else:
+            prediction_results = []
 
+        num_batches = len(self.dataloader['eval'])
+        use_roc = self.eval_config.get('use_roc', False)
         self.model.eval()
 
-        for inputs, labels in self.dataloader['eval']:
+        for i, (inputs, labels) in enumerate(self.dataloader['eval']):
             inputs = inputs.to(self.device)
             if is_label_available:
                 labels = labels.to(self.device).unsqueeze(-1).float()
@@ -223,7 +232,7 @@ class Engine(BaseEngine):
                 loss = self.criterion(outputs, labels)
 
             # Use softmax when the num of classes > 1 else sigmoid
-            if self.num_clsses > 1:
+            if self.num_classes > 1:
                 _, predictions = torch.max(outputs, 1)
             else:
                 probabilities = torch.sigmoid(outputs)
@@ -237,32 +246,43 @@ class Engine(BaseEngine):
                 total_loss += loss.item() * inputs.size(0)
                 num_corrects += torch.sum(predictions == labels.data)
             else:
-                # TODO: save prediction results
-                return
+                outputs = outputs.data.numpy().flatten()
+                ids = [id for id in labels]
+                for output, id in zip(outputs, ids):
+                    prediction_results.append([id, output])
+
+            log.info(
+                'Evaluation batch {}/{}'.format(i+1, num_batches)
+            )
 
         if is_label_available:
             eval_loss = total_loss / len(self.dataloader['eval'].dataset)
             eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
             return eval_loss, eval_acc
         else:
-            #prediction_results
-            return
-            #save_predictions(prediction_results)
-            #log.infov('Prediction results for {} is saved in {}'.format(data_name, save_path))
+            util.save_results(self.mode, self.model_name, self.tag,
+                              data_name, prediction_results)
 
 
 
-    def _save_model(self, save_dir, epoch, additional_tag=None):
-        if additional_tag:
-            tag = self.tag + '_' + additional_tag
+    def _save_model(self, epoch=None):
+        if epoch is not None:
+            checkpoint_tag = str(epoch)
         else:
-            tag = self.tag
+            checkpoint_tag = 'best'
 
-        checkpoint_path = util.save_path(save_dir, self.model_name, tag)
+        save_dir = util.dir_path(self.mode, self.model_name, self.tag)
+        checkpoint_path = os.path.join(
+            save_dir, 'checkpoint' + '_' + checkpoint_tag + '.pth')
 
-        torch.save({
+        model_params = {
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict()
-        }, checkpoint_path)
+        }
+
+        if self.scheduler is not None:
+            model_params['scheduler_state_dict'] = self.scheduler.state_dict()
+
+        torch.save(model_params, checkpoint_path)
 
