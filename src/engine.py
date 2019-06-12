@@ -6,6 +6,7 @@ import time
 from abc import abstractmethod
 import torch
 import torchvision
+from torch.utils.tensorboard import SummaryWriter
 
 from src.utils import util
 from src.utils.util import log
@@ -48,6 +49,8 @@ class BaseEngine(object):
             log.warn("GPU is not available. Please check the configuration.")
         else:
             log.warn("GPU is available.")
+
+        self.writer = SummaryWriter()
 
     def train(self):
         raise NotImplementedError
@@ -170,11 +173,7 @@ class Engine(BaseEngine):
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i+1, num_batches, loss)
             )
-
-            # TODO: remove
-            if i == 10:
-                self._save_model(epoch=0)
-
+            #self.writer.add_scalar('training_loss', loss, i)
         train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 

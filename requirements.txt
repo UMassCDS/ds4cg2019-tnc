@@ -1,6 +1,8 @@
 numpy
 torch
 torchvision
+tb-nightly
+future
 colorlog
 pyyaml
 ipython
