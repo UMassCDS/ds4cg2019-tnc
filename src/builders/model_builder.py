@@ -21,7 +21,6 @@ SUPERVISED_MODELS = {
     'densenet121': models.densenet121,
     'densenet169': models.densenet169,
     'densenet201': models.densenet201,
-    'inception': models.inception_v3,
     #'mobilenet': models.mobilenet_v2,
     #'resnetxt50': models.resnext50_32x4d
 }
@@ -29,61 +28,51 @@ SUPERVISED_MODELS = {
 SEMI_MODELS = {
 }
 
-def build(model_config):
+def build(model_config, checkpoint):
     if 'name' not in model_config:
         log.error('Specify a model name')
     model_name = model_config['name']
 
+    # build model
     if model_name in SUPERVISED_MODELS:
         log.infov('{} model is built'.format(model_name.upper()))
-        return build_supervised_model(model_name, model_config)
+        model = build_supervised_model(model_name, model_config)
     elif model_name in SEMI_MODELS:
         log.infov('{} model is built'.format(model_name.upper()))
-        return build_semi_model(model_name, model_config)
+        model = build_semi_model(model_name, model_config)
     else:
         SUPERVISED_MODELS.update(SEMI_MODELS)
-        log.error('Enter valid model name among {}'.format(SUPERVISED_MODELS))
-        exit()
+        log.error(
+            'Enter valid model name among {}'.format(SUPERVISED_MODELS)
+        ); exit()
+
+    # load model
+    if checkpoint is not None:
+        model.load_state_dict(checkpoint['model_state_dict'])
+        log.infov('Model is built using the given checkpoint')
+    else:
+        log.infov('Model is built without checkpoint')
+
+    # parallelize model
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
+        log.warn("{} GPUs will be used.".format(torch.cuda.device_count()))
+
+    return model
 
 
 # Supervised Model
 # ================
 
 def build_supervised_model(model_name, model_config):
-    misc = {}
-    if 'inception' in model_name:
-        misc['is_inception'] = True
-
     # build a model
     model = SUPERVISED_MODELS[model_name](pretrained=False) # imagenet pretrained is False
-    misc['model_name'] = model_name
-
-    # load a pretrained model
-    pretrained = model_config.get('pretrained', False)
-    if pretrained:
-        path = model_config['checkpoint_path']
-        checkpoint = torch.load(path)
-        model.load_state_dict(checkpoint)
-        log.infov('Checkpoint is loaded')
-        misc['checkpoint'] = checkpoint
-
-    # freeze parameters except the last layer (classifier)
-    freeze = model_config.get('freeze', False)
-    if freeze:
-        for param in model.parameters():
-            param.requires_grad = False
-        log.warn('Recommend not to freeze the model parameters')
 
     # modify the last layer (classifier)
     num_classes = model_config.get('num_classes', 1)
     model = modify_classifier(model, model_name, num_classes)
-    misc['num_classes'] = num_classes
 
-    log.info(
-        'Model config - pretrained: {0}, freeze: {1}, num of classes: {2}'\
-        .format(pretrained, freeze, num_classes))
-
-    return model, misc
+    return model
 
 def modify_classifier(model, model_name, num_classes):
     if 'alexnet' in model_name:
