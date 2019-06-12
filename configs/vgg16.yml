@@ -3,23 +3,22 @@ model: &model
   pretrained: False
   freeze: False
   num_classes: 1
-  checkpoint_path: ''
-  # checkpoint_path: 'checkpoints/resnet18/resnet18_no_norm.pth'
+  checkpoint_path: 'checkpoints/vgg16_test/checkpoint_0.pth'
 
 train: &train
   data: wildcam
   num_epochs: 100
-  save_dir: 'checkpoints/resnet18'
 
   optimizer: &optimizer
     name: rmsprop
     lr: 0.001
-    lr_schedule: &lr_schedule
-      step_size: 5
-      gamma: 0.1
     alpha: 0.99
     eps: 0.000001
     weight_decay: 0.0
+
+  lr_schedule: &lr_schedule
+    step_size: 5
+    gamma: 0.1
 
   criterion: &criterion
     name: cross_entropy
