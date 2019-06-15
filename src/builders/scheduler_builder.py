@@ -7,11 +7,11 @@ SCHEDULERS = {
 }
 
 def build(train_config, optimizer, checkpoint):
-    if 'scheduler' not in train_config:
+    if 'lr_schedule' not in train_config:
         log.infov('No scheduler is specified')
         return None
 
-    schedule_config = train_config['scheduler']
+    schedule_config = train_config['lr_schedule']
     scheduler_name = schedule_config.pop('name', 'step_lr')
     schedule_config['optimizer'] = optimizer
 
