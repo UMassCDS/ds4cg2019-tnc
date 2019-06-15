@@ -29,6 +29,13 @@ class BaseEngine(object):
         self.eval_config = config['eval']
         self.data_config = config['data']
 
+        # misc information
+        self.model_name = self.model_config['name']
+        self.num_classes = self.model_config['num_classes']
+
+        # setup a directory to store checkpoints or evaluation results
+        util.setup(self.mode, self.model_name, self.tag)
+
         # store data name to data config depending on which mode we are on
         if self.mode == 'train':
             data_name = self.train_config['data']
@@ -87,13 +94,6 @@ class Engine(BaseEngine):
                 self.train_config, self.optimizer, self.checkpoint)
             self.criterion = criterion_builder.build(self.train_config)
 
-        # misc information
-        self.model_name = self.model_config['name']
-        self.num_classes = self.model_config['num_classes']
-
-        # setup a directory to store checkpoints or evaluation results
-        util.setup(self.mode, self.model_name, self.tag)
-
 
     def train(self):
         start_epoch = 0 if self.checkpoint is None else self.checkpoint['epoch']
@@ -124,7 +124,7 @@ class Engine(BaseEngine):
             )
 
             val_start = time.time()
-            val_loss, val_acc = self._val()
+            val_loss, val_acc = self.val()
 
             # save the best model
             if val_acc > best_acc:
@@ -276,9 +276,13 @@ class Engine(BaseEngine):
 
         model_params = {
             'epoch': epoch,
-            'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict()
         }
+
+        if torch.cuda.device_count() > 1:
+            model_params['model_state_dict'] = self.model.module.state_dict()
+        else:
+            model_params['model_state_dict'] = self.model.state_dict()
 
         if self.scheduler is not None:
             model_params['scheduler_state_dict'] = self.scheduler.state_dict()
