@@ -5,7 +5,7 @@ model: &model
 train: &train
   data: wildcam
   num_epochs: 100
-  checkpoint_path: 'checkpoints/vgg16_test/checkpoint_0.pth'
+  checkpoint_path: '' # '' if training from scratch
 
   optimizer: &optimizer
     name: rmsprop
@@ -24,11 +24,11 @@ train: &train
 eval: &eval
   data: wildcam
   use_roc: False
-  checkpoint_path: 'checkpoints/vgg16_test' # either checkpoint dir or path
+  checkpoint_path: 'checkpoints/vgg16_illumination' # either checkpoint dir or path
 
 data: &data
-  root_dir: 'data'
-  batch_size: 16
+  root_dir: '/mnt/nfs/work1/ds4cg/'
+  batch_size: 128
   num_workers: 1
   label_type: binary
 
