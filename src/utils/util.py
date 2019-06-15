@@ -57,7 +57,7 @@ def load_config(config_name):
 
 
 def load_checkpoint(checkpoint_loc):
-    if checkpoint_loc is None:
+    if checkpoint_loc is '':
         log.warn('No checkpoint is specified')
         checkpoint = None
     elif checkpoint_loc.endswith('.pth'):
@@ -75,6 +75,11 @@ def latest_checkpoint(checkpoint_dir):
 
     while not is_new_checkpoint:
         checkpoints = fnmatch.filter(os.listdir(checkpoint_dir), '*.pth')
+        if len(checkpoints) <= 0:
+            log.warn('No new checkpoint is available with for 5 minutes')
+            time.sleep(300)
+            continue
+
         tags = [checkpoint_path.split('/')[-1].split('_')[-1].split('.')[0]
                 for checkpoint_path in checkpoints]
 
@@ -140,6 +145,10 @@ def setup(mode, model_name, tag):
     os.makedirs(directory, exist_ok=True)
 
     log.info("Directory {} to save checkpoints/results is ready".format(directory))
+
+    if mode == 'eval':
+        directory = dir_path('train', model_name, tag)
+        os.makedirs(directory, exist_ok=True)
 
 
 def dir_path(mode, model_name, tag):
