@@ -56,14 +56,14 @@ def load_config(config_name):
     return config
 
 
-def load_checkpoint(checkpoint_loc):
-    if checkpoint_loc is '':
+def load_checkpoint(checkpoint_path):
+    if checkpoint_path is '':
         log.warn('No checkpoint is specified')
         checkpoint = None
-    elif checkpoint_loc.endswith('.pth'):
-        checkpoint = torch.load(checkpoint_loc)
-    elif os.path.isdir(checkpoint_loc):
-        checkpoint = torch.load(latest_checkpoint(checkpoint_loc))
+    elif checkpoint_path.endswith('.pth'):
+        checkpoint = torch.load(checkpoint_path)
+    elif os.path.isdir(checkpoint_path):
+        checkpoint = torch.load(latest_checkpoint(checkpoint_path))
     else:
         log.error('Specify right checkpoint location')
     return checkpoint
@@ -163,7 +163,7 @@ def dir_path(mode, model_name, tag):
 
 def save_results(mode, model_name, tag, data_name, results):
     headers = {
-        'wildcam': ['id', 'animal_present']
+        'wildcam': [['id', 'animal_present']]
     }
     results = headers[data_name] + results
 

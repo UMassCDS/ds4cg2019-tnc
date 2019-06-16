@@ -124,7 +124,7 @@ class Engine(BaseEngine):
             )
 
             val_start = time.time()
-            val_loss, val_acc = self.val()
+            val_loss, val_acc = self.validate()
 
             # save the best model
             if val_acc > best_acc:
@@ -207,10 +207,11 @@ class Engine(BaseEngine):
 
         num_batches = len(self.dataloader['eval'])
         use_roc = self.eval_config.get('use_roc', False)
+        stop = False
 
-        while True:
+        while not stop:
             self._evaluate_once(data_name, is_label_available, num_batches, use_roc)
-            self._reload_model()
+            stop = self._reload_model()
 
 
     def _evaluate_once(self, data_name, is_label_available, num_batches, use_roc):
@@ -245,10 +246,10 @@ class Engine(BaseEngine):
                 total_loss += loss.item() * inputs.size(0)
                 num_corrects += torch.sum(predictions == labels.data)
             else:
-                outputs = outputs.data.numpy().flatten()
+                predictions = predictions.data.cpu().numpy().flatten()
                 ids = [id for id in labels]
-                for output, id in zip(outputs, ids):
-                    prediction_results.append([id, output])
+                for prediction, id in zip(predictions, ids):
+                    prediction_results.append([id, int(prediction)])
 
             log.info(
                 'Evaluation batch {}/{}'.format(i+1, num_batches)
@@ -291,9 +292,14 @@ class Engine(BaseEngine):
 
 
     def _reload_model(self):
+        stop = False
+        checkpoint_path = self.eval_config['checkpoint_path']
+        if checkpoint_path.endswith('.pth'):
+            stop = True
+            return stop
         self.checkpoint = util.load_checkpoint(self.eval_config['checkpoint_path'])
 
         # build model
         self.model = model_builder.build(self.model_config, self.checkpoint)
         self.model.to(self.device)
-
+        return stop
