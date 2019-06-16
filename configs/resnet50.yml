@@ -1,5 +1,5 @@
 model: &model
-  name: vgg16
+  name: resnet50
   num_classes: 1
 
 train: &train
@@ -28,7 +28,7 @@ eval: &eval
 
 data: &data
   root_dir: '/mnt/nfs/work1/ds4cg/'
-  batch_size: 64
+  batch_size: 128
   num_workers: 1
   label_type: binary
 
