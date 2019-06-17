@@ -9,17 +9,18 @@ train: &train
 
   optimizer: &optimizer
     name: rmsprop
-    lr: 0.001
+    lr: 0.00001
     alpha: 0.99
-    eps: 0.000001
+    eps: 0.0000001
     weight_decay: 0.0
 
   lr_schedule: &lr_schedule
-    step_size: 5
+    step_size: 3
     gamma: 0.1
 
   criterion: &criterion
-    name: cross_entropy
+    gamma: 1
+    # alpha: 0.5
 
 eval: &eval
   data: wildcam
@@ -28,7 +29,7 @@ eval: &eval
 
 data: &data
   root_dir: '/mnt/nfs/work1/ds4cg/'
-  batch_size: 64
+  batch_size: 128
   num_workers: 1
   label_type: binary
 

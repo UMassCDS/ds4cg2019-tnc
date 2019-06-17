@@ -17,7 +17,8 @@ train: &train
     gamma: 0.1
 
   criterion: &criterion
-    name: cross_entropy
+    gamma: 0
+    # alpha: 0.5
 
 eval: &eval
   data: wildcam
