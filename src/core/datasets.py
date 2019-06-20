@@ -49,32 +49,35 @@ class NACTI(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        return image, label
+        return (image, label)
 
 class TNC(Dataset):
     BINARY = {0: 0, 1: 1}
     LABEL_TYPES = {'binary': BINARY}
-    MODES = {'train', 'eval'}
 
     def __init__(self, data_dir, metadata_file, transform=None, mode='train'):
-        if mode not in self.MODES:
-            log.error('Specify right mode for WILDCAM dataset - train, eval'); exit()
-        self.mode = mode
         self.data_dir = data_dir
 
-        if self.mode != 'eval':
-          self.metadata = metadata_file
-          self.transform = transform
+        self.metadata = metadata_file
+        self.transform = transform
 
     def __len__(self):
-        return
+        length = len(self.metadata['annotations'])
+        return length
 
     def __getitem__(self, idx):
-        sample = None
+        image_path = os.path.join(self.data_dir,
+                                  self.metadata['images'][idx]['id'])
+        # get a label
+        original_label = self.metadata['annotations'][idx]['category_id']
+        label = self.label_map[original_label]
+
+        image = Image.open(image_path)
 
         if self.transform:
-            sample = self.transform(sample)
-        return
+            image = self.transform(image)
+
+        return (image, label)
 
 class WILDCAM(Dataset):
     # 0: not animal, 1: animal
@@ -106,7 +109,6 @@ class WILDCAM(Dataset):
         # transformers
         self.transform = transform
 
-    # TODO: verify eval part
     def __len__(self):
         if self.mode == 'eval':
             length = len(self.metadata)

@@ -2,7 +2,7 @@ import os
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 
-from src.data.datasets import NACTI, TNC, WILDCAM
+from src.core.datasets import NACTI, TNC, WILDCAM
 from src.utils.util import log, NormalizePerImage
 
 
@@ -20,8 +20,7 @@ def load(mode, data_name, root_dir, batch_size, num_workers, label_type):
     elif data_name == 'wildcam':
       dataloaders = load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
     elif data_name == 'tnc':
-      # TODO: add tnc dataset
-      dataloaders = None
+      dataloaders = load_tnc(mode, data_name, root_dir, batch_size, num_workers, label_type)
     else:
       log.error('Specify right data name for {} - nacti, tnc, wildcam'.format(mode))
 
@@ -112,7 +111,45 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
       return eval_dataloader
 
 
-def load_tnc(data_name, root_dir, batch_size, num_workers, label_type, mode):
+def load_tnc(mode, data_name, root_dir, batch_size, num_workers, label_type):
     data_dir = os.path.join(root_dir, data_name)
-    return
+
+    if mode == 'train':
+      train_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(0.5),
+        transforms.ColorJitter(brightness=0.2),
+        transforms.ToTensor(),
+        NormalizePerImage()
+      ])
+
+      val_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        NormalizePerImage()
+      ])
+
+      train_json = 'train.json'
+      val_json = 'val.json'
+      train_dataset = DATASETS[data_name](data_dir=data_dir, metadata_file=train_json,
+                                          label_type=label_type, transform=train_transform)
+      val_dataset = DATASETS[data_name](data_dir=data_dir, metadata_file=val_json,
+                                        label_type=label_type, transform=val_transform)
+      train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
+                                    shuffle=True, num_workers=num_workers)
+      val_dataloader = DataLoader(val_dataset, batch_size=batch_size,
+                                  shuffle=False, num_workers=num_workers)
+      return (train_dataloader, val_dataloader)
+    elif mode == 'eval':
+      eval_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        NormalizePerImage()
+      ])
+
+      eval_dataset = DATASETS[data_name](data_dir=data_dir, metadata_file=None,
+                                         label_type=None, transform=eval_transform)
+      eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size,
+                                   shuffle=False, num_workers=num_workers)
+      return eval_dataloader
 
