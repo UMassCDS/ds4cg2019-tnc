@@ -1,6 +1,6 @@
 from torch import optim
-
 from src.utils.util import log
+
 
 SCHEDULERS = {
     'step_lr': optim.lr_scheduler.StepLR

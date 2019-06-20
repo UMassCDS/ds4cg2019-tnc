@@ -93,7 +93,7 @@ class Engine(BaseEngine):
             self.scheduler = scheduler_builder.build(
                 self.train_config, self.optimizer, self.checkpoint)
             self.criterion = criterion_builder.build(
-                self.train_config, self.num_classes)
+                self.train_config, self.data_config['label_type'])
 
 
     def train(self):

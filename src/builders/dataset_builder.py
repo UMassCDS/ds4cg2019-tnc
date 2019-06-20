@@ -1,7 +1,5 @@
-import os
-
 from src.utils.util import log
-from src.data.dataloader import load
+from src.core.dataloader import load
 
 
 def build(data_config):
