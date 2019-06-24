@@ -10,7 +10,7 @@ train: &train
   optimizer: &optimizer
     name: sgd
     lr: 0.001
-        weight_decay: 0.0
+    weight_decay: 0.0
 
   lr_schedule: &lr_schedule
     step_size: 5
