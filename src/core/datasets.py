@@ -55,10 +55,20 @@ class TNC(Dataset):
     BINARY = {0: 0, 1: 1}
     LABEL_TYPES = {'binary': BINARY}
 
-    def __init__(self, data_dir, metadata_file, transform=None, mode='train'):
+    def __init__(self, data_dir, metadata_file, label_type, transform=None):
         self.data_dir = data_dir
 
-        self.metadata = metadata_file
+        # load meta data
+        meatadata_path = os.path.join(self.data_dir, metadata_file)
+        with open(meatadata_path, 'r') as f:
+            self.metadata = json.load(f)
+
+        # initialize label map from the original label to a new label
+        if label_type not in self.LABEL_TYPES:
+            log.error('Specify right label type for TNC dataset - binary or multi')
+        self.label_map = self.LABEL_TYPES[label_type]
+
+        # transformer
         self.transform = transform
 
     def __len__(self):
@@ -69,7 +79,7 @@ class TNC(Dataset):
         image_path = os.path.join(self.data_dir,
                                   self.metadata['images'][idx]['id'])
         # get a label
-        original_label = self.metadata['annotations'][idx]['category_id']
+        original_label = int(self.metadata['annotations'][idx]['category_id'])
         label = self.label_map[original_label]
 
         image = Image.open(image_path)

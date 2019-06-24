@@ -74,12 +74,16 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
         transforms.RandomHorizontalFlip(0.5),
         transforms.ColorJitter(brightness=0.2),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.00133, 0.00137, 0.00115],
+                             std=[0.00084, 0.00083, 0.00076]),
         NormalizePerImage()
       ])
 
       val_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.00133, 0.00137, 0.00115],
+                             std=[0.00084, 0.00083, 0.00076]),
         NormalizePerImage()
       ])
 
@@ -100,6 +104,8 @@ def load_wildcam(mode, data_name, root_dir, batch_size, num_workers, label_type)
       eval_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.00133, 0.00137, 0.00115],
+                             std=[0.00084, 0.00083, 0.00076]),
         NormalizePerImage()
       ])
 

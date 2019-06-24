@@ -130,7 +130,7 @@ class Engine(BaseEngine):
             # save the best model
             if val_acc > best_acc:
                 best_acc = val_acc
-                self._save_model()
+                self._save_model(epoch, 'best')
 
             val_accuracies.append(val_acc)
             time_elapsed = time.time() - val_start
@@ -166,9 +166,6 @@ class Engine(BaseEngine):
                 'Train batch {}/{} - loss: {:4f}'\
                 .format(i+1, num_batches, loss)
             )
-            #self.writer.add_scalar('training_loss', loss, i)
-            if i == 10:
-                self._save_model(0)
         train_loss = total_loss / len(self.dataloader['train'].dataset)
         return train_loss
 
@@ -266,11 +263,9 @@ class Engine(BaseEngine):
                               data_name, prediction_results)
 
     # TODO: create model saver/loader
-    def _save_model(self, epoch=None):
-        if epoch is not None:
+    def _save_model(self, epoch, checkpoint_tag=None):
+        if checkpoint_tag is None:
             checkpoint_tag = str(epoch)
-        else:
-            checkpoint_tag = 'best'
 
         save_dir = util.dir_path(self.mode, self.model_name, self.tag)
         checkpoint_path = os.path.join(
