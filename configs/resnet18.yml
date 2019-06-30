@@ -5,7 +5,8 @@ model: &model
 train: &train
   data: wildcam
   num_epochs: 100
-  checkpoint_path: 'checkpoints/resnet18_test/resnet18_0.pth'
+  checkpoint_path : ''
+  # checkpoint_path: 'checkpoints/resnet18_test/resnet18_0.pth'
 
   optimizer: &optimizer
     name: sgd

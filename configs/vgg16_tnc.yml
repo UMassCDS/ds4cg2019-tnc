@@ -3,7 +3,7 @@ model: &model
   num_classes: 1
 
 train: &train
-  data: wildcam
+  data: tnc
   num_epochs: 100
   checkpoint_path: ''
   # checkpoint_path: 'checkpoints/vgg16_illumination/checkpoint_best.pth' # '' if training from scratch
@@ -23,13 +23,13 @@ train: &train
     name: cross_entropy
 
 eval: &eval
-  data: wildcam
+  data: tnc
   use_roc: False
-  checkpoint_path: 'checkpoints/vgg16_final/checkpoint_8.pth' # either checkpoint dir or path
+  checkpoint_path: 'checkpoints/vgg16_tnc/checkpoint_0.pth' # either checkpoint dir or path
 
 data: &data
   root_dir: '/mnt/nfs/work1/ds4cg/'
   batch_size: 64
-  num_workers: 4
+  num_workers: 1
   label_type: binary
 
