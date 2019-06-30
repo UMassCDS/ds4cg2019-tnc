@@ -98,6 +98,8 @@ class Engine(BaseEngine):
 
     def train(self):
         start_epoch = 0 if self.checkpoint is None else self.checkpoint['epoch']
+        if not isinstance(start_epoch, int):
+            start_epoch = 0
         num_epochs = self.train_config.get('num_epochs', 50)
         if num_epochs < start_epoch:
             num_epochs = start_epoch + 50
@@ -226,23 +228,20 @@ class Engine(BaseEngine):
 
             # Forward propagation
             outputs = self.model(inputs)
-            if is_label_available:
-                loss = self.criterion(outputs, labels)
 
             # Use softmax when the num of classes > 1 else sigmoid
             if self.num_classes > 1:
                 _, predictions = torch.max(outputs, 1)
             else:
                 probabilities = torch.sigmoid(outputs)
-                predictions = torch.gt(probabilities, 0.5)
+                predictions = torch.gt(probabilities, 0.5).float()
                 if use_roc and is_label_available:
                     # TODO: implement save_roc
                     util.save_roc(probabilities, labels)
 
             # Statistics
             if is_label_available:
-                total_loss += loss.item() * inputs.size(0)
-                num_corrects += torch.sum(predictions == labels.data)
+                num_corrects += torch.sum((predictions == labels).int())
             else:
                 predictions = predictions.data.cpu().numpy().flatten()
                 ids = [id for id in labels]
@@ -254,9 +253,9 @@ class Engine(BaseEngine):
             )
 
         if is_label_available:
-            eval_loss = total_loss / len(self.dataloader['eval'].dataset)
-            eval_acc = num_corrects.double() / len(self.dataloader['eval'].dataset)
+            eval_acc = num_corrects.double() / float(len(self.dataloader['eval'].dataset))
             # TODO: add step
+            log.infov("Evaluation accuracy: {}".format(eval_acc))
             self.writer.add_scalar('eval accuracy', eval_acc)
         else:
             util.save_results(self.mode, self.model_name, self.tag,
