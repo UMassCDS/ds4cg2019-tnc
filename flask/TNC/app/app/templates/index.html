@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <title>TNC</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+  </head>
+<body>
+<!--Navbar -->
+<!-- <nav class="navbar navbar-expand beta-menu navbar-dropdown align-items-center navbar-fixed-top navbar-toggleable-sm bg-color transparent"> -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+		<div class="container">
+			<span class="navbar-brand mb-0 h1">TNC</span>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" 
+			data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
+			aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+				
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav ml-auto">
+					<li class="nav-item active">
+						<a class="nav-link" href="/">Home 
+							<span class="sr-only">(current)</span>
+						</a>
+					</li>
+					<li class="nav-item active">
+							<a class="nav-link" href="/#instructions">Instructions
+							</a>
+						</li>
+					<li class="nav-item">
+						<a class="btn btn-success" href="/upload" role="button"><img src="{{ url_for('static', filename='img/play.png') }}" height="30px">Start</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+    <!--/.Navbar -->
+
+	<header class="jumbotron jumbotron-fluid vertical-center">
+		<div class="container-fluid text-center text-align"> 
+		   <h3 class="display-3">TNC Animal Detector</h3>
+		   <p class="lead pb-4">This application runs object detection algorithm on images to detect the presence 
+			<br> of animals in the images. 
+			<br> Please begin the application by clicking the start button below. </p>
+		   <p><a href="/upload" class="btn btn-success btn-lg" role="button"><img src="{{ url_for('static', filename='img/play.png') }}" height="30px">Start</a></p>
+		</div>
+	</header>
+
+	<div id="instructions" class="container">
+		<h4 class="display-4" style="text-align: center;">Instructions</h5>
+		<div class="row justify-content-center">
+			<div class="card text-white text-center bg-primary  p-2 col-6 col-md-3 col-lg-3 mr-3 mb-3">
+				<div class="card-img pb-3">
+					<span style="display:inline-block;">
+						<img src="{{ url_for('static', filename='img/play.png') }}", class="img-responsive" alt="Start">
+					</span>
+				</div>
+				<div class="card-box">
+					<h4 class="card-title display-5">Step 1: Start</h4>
+					<p class="mbr-text display-7">Start the application by clicking on the Start button in the top right corner.</p>
+				</div>
+			</div>
+			<div class="card text-white text-center bg-primary  p-2 col-6 col-md-3 col-lg-3 mr-3 mb-3">
+				<div class="card-img pb-3">
+					<span style="display:inline-block;">
+						<img src="{{ url_for('static', filename='img/upload.png') }}", class="img-responsive" alt="Upload">
+					</span>
+				</div>
+				<div class="card-box">
+					<h4 class="card-title display-5">Step 2: Upload</h4>
+					<p class="mbr-text display-7">Upload the images that you want detected. Wait for the images to get uploaded and click begin.</p>
+				</div>
+			</div>
+			<div class="card text-white text-center bg-primary p-2 col-6 col-md-3 col-lg-3 mr-3 mb-3">
+				<div class="card-img pb-3">
+					<span style="display:inline-block;">
+						<img src="{{ url_for('static', filename='img/wait.png') }}", class="img-responsive" alt="Wait">
+					</span>
+				</div>
+				<div class="card-box">
+					<h4 class="card-title display-5">Step 3: Wait</h4>
+					<p class="mbr-text display-7">Wait a few minutes for the program to finish. More the images, more the wait!</p>
+				</div>
+			</div>
+			<div class="card text-white text-center bg-primary p-2 col-6 col-md-3 col-lg-3 mr-3 mb-3">
+				<div class="card-img pb-3">
+					<span style="display:inline-block;">
+						<img src="{{ url_for('static', filename='img/download.png') }}", class="img-responsive" alt="Download">
+					</span>
+				</div>
+				<div class="card-box">
+					<h4 class="card-title display-5">Step 4: Downlaod</h4>
+					<p class="mbr-text display-7">Once the program is complete, you can download the labeled images and a supplementary CSV file. The download link is only valid for one-time use. </p>
+				</div>
+			</div>				
+		</div>
+	</div>
+
+
+	
+
+<script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

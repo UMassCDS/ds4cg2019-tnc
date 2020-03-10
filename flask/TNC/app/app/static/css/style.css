@@ -1,0 +1,22 @@
+body {
+    padding-top: 50px;
+}
+
+.card, .btn, .form-control {
+	border-radius: 25px;
+}
+
+.jumbotron {
+	height: 100vh;
+	text-shadow: #444 0 1px 1px;
+	position: relative;
+	background-image: url("../img/Sketch.png");
+	background-size: cover;
+	display: flex;
+	align-items: center;
+}
+
+.btn-primary {
+    background-color: #c60063;
+    border-color: #c60063;
+}
