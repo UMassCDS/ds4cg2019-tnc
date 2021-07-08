@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>TNC Upload</title>
+        <title>FoxBound Upload</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">        
         {{ dropzone.load_css() }}
-        {{ dropzone.style('border: 2px dashed #0087F7; margin: 10%; min-height: 400px;') }}
     </head>
+
+    <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+    <script type="application/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script type="application/javascript" src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <!-- <script type="text/javascript">
+        $(document).on('submit','#email_form',function(e)
+                       {
+          console.log('submitted email');
+          e.preventDefault();
+          $.ajax({
+            type:'POST',
+            url:'/upload',
+            data:{
+              email:$("#email").val()
+            },
+            success:function()
+            {
+              alert('saved email');
+            }
+          })
+        });
+      </script> -->
 
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
             <div class="container">
-                <span class="navbar-brand mb-0 h1">TNC</span>
+                <span class="navbar-brand mb-0 h1"><a class="nav-item-active" href="/">FoxBound</a></span>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" 
                 data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -41,30 +62,22 @@
             </div>
         </nav>
         
-        
         <div class="container-fluid text-center text-align pt-5"> 
-            <h3 class="display-5">Upload images for TNC detection!</h3>
+            <h3 class="display-5">Upload images for FoxBound detection!</h3>
         </div>
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="container-fluid text-center text-align pt-5"> 
-                    <h3 class="display-5">{{messages[-1]}}</h3>
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        {{ dropzone.create(action_view='upload') }}
-        
+        {{ dropzone.create(action='upload') }}
         <div class="container-fluid text-center text-align pt-5"> 
-            <a class="btn btn-success" href="/progress" role="button"><img src="{{ url_for('static', filename='img/play.png') }}" height="30px">Begin
+            <h4 class="display-5">We need an email address to send notifications to once processing is complete.</h4>
+            <form action='process_redis' method="post" id='email_form'>
+                <label for="email">Enter your email and submit images for processing:</label>
+                <input type="email" name="email" required>
+                <button type="submit">Submit</button>
+            </form>
         </div>
-        
-        <!-- <a type="button" href="/results" class="btn btn-success btn-lg btn-block">Begin</button> -->
-
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-        <script type="application/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script type="application/javascript" src="{{ url_for('static', filename='js/app.js') }}"></script>
+ 
         {{ dropzone.load_js() }}
+        {{ dropzone.style('border: 2px dashed #0087F7; margin: 5%; min-height: 200px;') }}
+
     </body>
 </html>

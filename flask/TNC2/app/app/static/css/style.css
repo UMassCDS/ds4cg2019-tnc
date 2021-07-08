@@ -9,8 +9,9 @@ body {
 .jumbotron {
 	height: 100vh;
 	text-shadow: #444 0 1px 1px;
+	color: white;
 	position: relative;
-	background-image: url("../img/Sketch.png");
+	background-image: url("../img/fox.jpg");
 	background-size: cover;
 	display: flex;
 	align-items: center;
@@ -19,4 +20,31 @@ body {
 .btn-primary {
     background-color: #c60063;
     border-color: #c60063;
+}
+
+.navbar-brand mb-0 h1 {
+    color: white;
+    } 
+
+.nav-item-active {
+	color: white;
+	text-emphasis-color: white;
+}
+
+#timer {
+	background: #0084ff;
+	border-radius: 4px;
+	padding: 20px;
+	font-size: 25px;
+	text-align: center;
+	color: white;
+	/* transition: all 0.2s; */
+	margin: 0 auto;
+	width: 300px;
+}
+
+#credits {
+	background: #0084ff;
+	text-align: center;
+	color: white;
 }
