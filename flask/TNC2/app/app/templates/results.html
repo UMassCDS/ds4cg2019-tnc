@@ -50,6 +50,9 @@
             var elapsed_seconds = "{{et}}";
             setInterval(function() {
             elapsed_seconds = elapsed_seconds - 1;
+            if (elapsed_seconds == 0) {
+                location.reload
+            }
             $('#timer').text(countdown_time_string(elapsed_seconds));
             }, 1000);
         </script>
@@ -88,7 +91,7 @@
             </div>
         </nav>
         
-        <div class="container-fluid text-center text-align" style="margin-top: auto;"> 
+        <div class="container-fluid text-center text-align" style="margin-top: 100px;"> 
             <h5 class="display-5">FoxBound Tracker</h5>
             <p class="lead pb-4"> There are {{ users }} users before you with a total of 
                 {{ images }} images to process. Estimated time of completion is </p> 

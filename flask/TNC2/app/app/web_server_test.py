@@ -80,7 +80,6 @@ def upload():
     session.clear()
     # print(session)
     if "userID" not in session:
-        # print("no session yet", file=sys.stderr)
         session.clear() # clearing flash messages from previous run if any
         session['userID'] = str(uuid.uuid4())
         session['images'] = False
@@ -99,10 +98,14 @@ def upload_images():
                         # Checking for jpg only to extract and push to redis
                         for name in z.namelist():
                             if name.rsplit(".", 1)[1].lower() == "jpg":
+                                print(name)
                                 session["images"] = True
-                                z.extract(name, os.path.join(UPLOAD_PATH))
-                                d = {"image":name}
-                                db.rpush(session["userID"], json.dumps(d))
+                                try:
+                                    z.extract(name, os.path.join(UPLOAD_PATH))
+                                    d = {"image":name}
+                                    db.rpush(session["userID"], json.dumps(d))
+                                except:
+                                    pass # todo: return relevant info back to user maybe
                 else:
                     session["images"] = True
                     filename = photos.save(f) # Ensure strong naming convention
