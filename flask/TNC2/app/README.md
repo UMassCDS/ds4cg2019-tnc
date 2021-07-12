@@ -7,6 +7,8 @@ You can download conda by visiting the website [here](https://conda.io/projects/
 In addition, you'd also want to ensure that you have Redis installed on your machine. If you are on Windows, stop here and either test on a Linux/MacOS machine or try installing Ubuntu LTS on your machine and install Redis on there. 
 You can follow the instructions [here](https://redis.io/download) and ensure the service is running by pinging the redis-server through the redis-cli. 
 
+Next, place the model graph (megadetectorv3.pb) in the TNC2/app/app folder.
+
 Now that you have conda and redis installed, you'd want to create 2 environemnts on conda. One would host the web-server while the other would run our image detection model. 
 
 ```bash
