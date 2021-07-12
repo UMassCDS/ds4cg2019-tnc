@@ -48,10 +48,13 @@
             }
 
             var elapsed_seconds = "{{et}}";
-            setInterval(function() {
+            var refreshID = setInterval(function() {
             elapsed_seconds = elapsed_seconds - 1;
             if (elapsed_seconds == 0) {
-                location.reload
+            	clearInterval(refreshID);
+            }
+            if (elapsed_seconds % 60 == 0) {
+                window.location.reload();
             }
             $('#timer').text(countdown_time_string(elapsed_seconds));
             }, 1000);

@@ -10,10 +10,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import matplotlib.pyplot as plt 
 import matplotlib.patches as patches
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # remove if using GPU
-
 import tensorflow as tf
+
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # remove if using GPU
 
 # Config parameters
 REDIS_HOST = "localhost"
@@ -28,12 +27,10 @@ DOWNLOAD_PATH = os.path.join(os.getcwd(), "static/detected_img/")
 
 USER_QUEUE = "user_queue"
 
-BATCH_SIZE = 4 # Change only when Tensorflow GPU is used
-
+BATCH_SIZE = 16 # Change only when Tensorflow GPU is used
 
 # Connecting to Redis server
 db = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
-
 
 # Extract filename from path
 def filename_extractor(path):
@@ -64,6 +61,7 @@ def load_graph():
 # Function to load model and continuously poll for new images to
 # classify from redis as and when available
 def tf_classify():
+
     # loading model
     start = time.time()
     sess, input_tensor, output_tensors = load_graph() 
@@ -72,31 +70,48 @@ def tf_classify():
 
     # continuosly polling for data
     while True:
+
         # attempting to grab any user request from Redis databases
         user = db.lrange(USER_QUEUE, 0, 0)
-        finalnames = []
+        finalnames = [] # collecting all imagenames for a user to write into zip output
         if user:
-            # If exists, get ID and email
+
+            # If exists, get ID, email, and queue of images
             userID = json.loads(user[0])["userID"]
             email = json.loads(user[0])["email"]
             queue = db.lrange(userID, 0, BATCH_SIZE - 1)
             predictions = []
-            # zipf = ZipFile(os.path.join(DOWNLOAD_PATH + userID + '.zip'), 'w')
+
             while queue:
-                images = []
-                imagenames = []
-                imtags = []
-                tagdict = []
+                images = [] # collecting resized images for batch processing
+                imagenames = [] # collecting imagenames for this batch
+                imtags = [] # collecting exif byte data for this batch
+                tagdict = [] # collecting human readable exif data for this batch
+                gpsdict = [] # collecting gpsinfo in human readable format for this batch
+
                 for img in queue:
                     # loop over the queue to get all preprocessed images
                     img = json.loads(img)["image"]
                     imagenames.append(img)
                     image = Image.open(os.path.join(UPLOAD_PATH, img))
+
                     try:
                         imtags.append(image.info["exif"])
                         tagdict.append({ ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS })
                     except:
                         pass # No metadata
+
+                    try:
+                        if 'GPSInfo' in tagdict:
+                            gpsinfo = {}
+                            for key in tagdict['GPSInfo'].keys():
+                                decode = ExifTags.GPSTAGS.get(key, key)
+                                gpsinfo[decode] = tagdict['GPSInfo'][key]
+                            tagdict['GPSInfo'] = gpsinfo
+                            print(gpsinfo)
+                    except:
+                        pass # No gpsinfo
+                    
                     image = image.convert("RGB")
                     image = image.resize((IMAGE_WIDTH, int(IMAGE_HEIGHT)))
                     # image = np.expand_dims(image, axis=0) 
@@ -105,10 +120,7 @@ def tf_classify():
                 # checking to see if we should run classifer (redundant)
                 if len(images) > 0:
                     print("Running classifier for ", len(images))
-                    # Save predictions for all images as a list
-                    
-
-                    # Run model and obtain tensor scores on batch of images
+                    # Running model on batch input
                     images = np.asarray(images)
                     start = time.time()
                     try:
@@ -117,6 +129,7 @@ def tf_classify():
                         print("Model run failed!")
                     end = time.time()
                     print("Model ran in " + str(end - start))
+
                     # Check each image for passing criteria and construct bounding box if need be
                     for i in range(len(images)):
                         start = time.time()
@@ -124,27 +137,24 @@ def tf_classify():
                         boxes_above_threshold = boxes[i][above_threshold]
                         classes_above_threshold = classes[i][above_threshold]
                         scores_above_threshold = scores[i][above_threshold]
-                        # sp = imagenames[i].split("_", 3)
-                        # if len(sp) > 2:
+                        
+                        # Store classification for image
                         pred = None
                         if not np.any(scores_above_threshold):
                             pred = {"image": imagenames[i], "label":"None", "score":"0"}
-                            # pred = {"image": imagenames[i], "site":sp[0], "date":sp[1], "label":"None", "score":"0"}
-                            # predictions.append(pred)
                         else:
                             is_animal = np.sum(classes_above_threshold == 1) > 0
                             max_score = np.max(scores_above_threshold)
                             pred = {"image":imagenames[i], "label": "Animal/Human", "score": str(max_score)}
-                            # pred = {"image":imagenames[i], "site":sp[0], "date":sp[1], "label": "Animal/Human", "score": str(max_score)}
-                            # predictions.append(pred)
-                        # print(predictions)
+                        
+
+                         # Add imagename to finalnames
+                        finalnames.append(imagenames[i])
 
                         # Constructing bounding box on image file
                         fig, ax = plt.subplots(1)
                         ax.imshow(images[i].squeeze())
                         if np.any(boxes_above_threshold):
-                            # Add imagename to finalnames
-                            finalnames.append(imagenames[i])
                             for box, cls in zip(boxes_above_threshold, classes_above_threshold):
                                 ymin, xmin, ymax, xmax = box
                                 x = xmin * IMAGE_WIDTH
@@ -156,28 +166,23 @@ def tf_classify():
                                                         edgecolor=edgecolor, facecolor='none')
                                 ax.add_patch(rect)
 
-                            # Saving file to location on disk
+                            
                             plt.axis('off')
-                            print(imtags[i])
+                            # Saving file to location on disk with exif data if need be
                             if tagdict[i]:
                                 plt.savefig(os.path.join("static/detected_img/", imagenames[i]), pil_kwargs={"exif":(imtags[i])}, dpi=100, transparent=True, optimize=True, quality=90)
                                 pred = {**pred, **tagdict[i]}       
-                            else:
-                                plt.savefig(os.path.join("static/detected_img/", imagenames[i]), dpi=100, transparent=True, optimize=True, quality=90)
-
-                            # Adding predictions to userID_PRED queue
-                            db.rpush(userID + '_PRED', json.dumps(pred)) # only needed if predictions list is too large for memory
+                            plt.savefig(os.path.join("static/detected_img/", imagenames[i]), dpi=100, transparent=True, optimize=True, quality=90)
                             predictions.append(pred)
 
                         # remove image from upload path
                         os.remove(os.path.join(UPLOAD_PATH, imagenames[i]))
                         end = time.time()
-                        print("Image checked for saving in " + str(end-start))
-
-                    
+                        print("Image checked for saving in " + str(end-start))          
                     
                     # Remove processed images from user queue
                     db.ltrim(userID, BATCH_SIZE, -1)
+                    
                 # Update queue for next round
                 queue = db.lrange(userID, 0, BATCH_SIZE - 1)
 
@@ -186,7 +191,7 @@ def tf_classify():
                 df = pandas.DataFrame(predictions)
                 print(df)
                 df['image'] = df['image'].apply(lambda x: clickable(x))
-                df.to_excel(os.path.join(DOWNLOAD_PATH, userID + ".xlsx"), engine='xlsxwriter', encoding='utf-8', index=False)
+                df.to_excel(os.path.join(DOWNLOAD_PATH, userID + ".xlsx"), engine='xlsxwriter', encoding='utf-16', index=False)
             except:
                 print("Excel conversion failed!")
 

@@ -151,7 +151,7 @@ def result(userID):
             ci += len(db.lrange(user, 0, -1))
             print(ci)
             if user == userID:
-                et = ci * 10
+                et = ci * 5
                 return render_template("results.html", users = cu, images=ci, et=et)
                 break
             cu += 1
