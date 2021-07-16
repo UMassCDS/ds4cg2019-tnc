@@ -21,7 +21,7 @@ User = agovindarajan
 Group = www-data
 WorkingDirectory = /home/agovindarajan/Documents/ds4cg2019-tnc/flask/TNC2/app
 Environment= "PATH=/home/agovindarajan/miniconda3/envs/model-server/bin"
-ExecStart=/home/agovindarajan/miniconda3/env/web-server/bin/gunicorn --workers 5 --bind unix:foxbound.sock -m 007 run:app
+ExecStart=/home/agovindarajan/miniconda3/env/model-server/bin/python model_server_test.py
 
 [Install]
 WantedBy=multi-user.target
