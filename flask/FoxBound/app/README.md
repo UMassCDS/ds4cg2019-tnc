@@ -43,6 +43,8 @@ python model_server_test.py
 ```
 
 # Workflow 
+![FoxBound API](https://www.pyimagesearch.com/wp-content/uploads/2018/01/keras_api_header.png) [Source](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/)
+
 The web-server hosts the flask app that accepts files of the format .zip or images/* (includes jpg, png, and other popular image formats). The server has been designed to primarily cater
 to jpg images however and it is best to use it with jpg inputs. Instructions are available on the website to have you navigate the routes. An email is necessary to submit images for processing.
 Once submitted, the images are tied to a unique userID and stored in-memory via redis. 
@@ -57,7 +59,7 @@ project directory for the presence of a zip file with the name userID. If presen
 > Avoid using the requirements.txt. It is very machine specific and isn't suggested to load the environment. 
 
 - [x] Serve web app on ds4cg-1.cs.umass.edu:5000
-- [ ] Write service file in systemd/system to initiate servers on boot. Require root access
-- [ ] Write a daily cron job to remove week/2 week old files from DOWNLOAD_PATH
-- [ ] Reverse proxy with nginx to free port 5000
+- [x] Write service file in systemd/system to initiate servers on boot. Require root access
+- [x] Write a daily cron job to remove week/2 week old files from DOWNLOAD_PATH
+- [x] Reverse proxy with nginx to free port 5000
 - [ ] Switch file serving from send_from_directory to nginx response since files are rather large
