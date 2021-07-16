@@ -156,7 +156,7 @@ def result(userID):
                 break
             cu += 1
         # abort(404)
-        return response("Invalid request. Your link expired.", 500);
+        return Response("Invalid request. Your link expired or your submission wasn't accepted. Try again!", 500);
 
 # Remove comment section if you wanna add progress bar instead of countdown timer
 # Progress is continiously streamed to client so it can get data heavy if there are many users. Unlikely to happen with FoxBound

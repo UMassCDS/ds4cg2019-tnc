@@ -1,0 +1,32 @@
+[Unit]
+Description = Gunicorn instance to serve FoxBound on ds4cg-1.cs.umass.edu
+After = network.target
+
+[Service]
+User = agovindarajan
+Group = www-data
+WorkingDirectory = /home/agovindarajan/Documents/ds4cg2019-tnc/flask/TNC2/app
+Environment= "PATH=/home/agovindarajan/miniconda3/envs/web-server/bin"
+ExecStart=/home/agovindarajan/miniconda3/env/web-server/bin/gunicorn --workers 5 --bind unix:foxbound.sock -m 007 run:app
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+server {
+    listen 80;
+    server_name ds4cg-1.cs.umass.edu www.ds4cg-1.cs.umass.edu;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/agovindarajan/Documents/ds4cg2019-tnc/flask/TNC2/app/foxbound.sock;
+    }
+}
+
+
+
+
+@daily root find /home/securityuser* -mtime +6 -type f -delete

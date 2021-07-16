@@ -9,7 +9,11 @@
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 
     </head>
-    <body>
+    <body style="background: url(https://www.maxpixel.net/static/photo/1x/Doodle-Pattern-Light-Bulb-Bulb-Background-6114818.jpg) no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;">
 <!--Navbar -->
 <!-- <nav class="navbar navbar-expand beta-menu navbar-dropdown align-items-center navbar-fixed-top navbar-toggleable-sm bg-color transparent"> -->
     <nav class="navbar navbar-expand-lg navbar-light bg-primary fixed-top">
@@ -48,7 +52,9 @@
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="container-fluid text-center text-align pt-5"> 
+				<h3 class="display-5">
                 <a href="{{messages[-1]}}">{{messages[-1]}}</a>
+				</h3>
             </div>
         {% endif %}
     {% endwith %}
