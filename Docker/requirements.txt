@@ -1,0 +1,9 @@
+exif
+ipykernel
+jsonpickle
+humanfriendly
+numpy
+matplotlib
+Pillow>=5.3.0
+pandas
+tqdm
