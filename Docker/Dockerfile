@@ -2,7 +2,7 @@ FROM tensorflow/tensorflow:1.14.0-py3
 
 # Install fetch tools and dependencies for Pillow, the python image library
 RUN apt-get -y update
-RUN apt-get -y install wget git libjpeg8-dev zlib1g-dev --fix-missing
+RUN apt-get -y install wget git libjpeg8-dev zlib1g-dev libfreetype6-dev --fix-missing
 
 # Set up MS CameraTraps and make it the working directory
 RUN git clone https://github.com/microsoft/CameraTraps

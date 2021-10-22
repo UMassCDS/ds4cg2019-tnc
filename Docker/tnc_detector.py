@@ -11,17 +11,14 @@ import time
 import shutil
 import warnings
 
-
 import humanfriendly
 from tqdm import tqdm
 import exif
 import pandas
 
-
 from detection.run_tf_detector import ImagePathUtils,TFDetector
 from detection import run_tf_detector_batch
 from visualization import visualization_utils
-
 
 warnings.filterwarnings("ignore", 'ASCII tag', module='exif')
 
@@ -42,7 +39,8 @@ DETECTIONS = "detections"
 
 def prepare_output_directory(output_root, subfolder_name):
     """Creates subfolders within the output root directory to store output images.
-    Returns paths to the created directorys: subfolder, subfolder to store annotated images, subfolder to store all renamed images, path to Excel metadata file.
+    Returns paths to the created directorys: subfolder, subfolder to store annotated images,
+    subfolder to store all renamed images, path to Excel metadata file.
     Args:
         - output_root: The full path to the output parent folder
         - subfolder_name
@@ -90,10 +88,12 @@ def verify_nonempty(input_str, default = MISSING_DEFAULT):
 # TODO: Note that we could also extract more metadata here if desired.
 # The original code seems to save off GPS info and other exif metadata
 def pull_image_metadata_and_unique_file_name(original_file_path):
-    """Returns a dictionary of image metadata (Camera make & model and image timestamp).
-    Also generates a unique file name for the image based on datetime and camera metadata.
-    The resulting image name is formated like MAKE_MODEL_DATETIME_ORIGINALNAME and has
-    no spaces.
+    """Returns a dictionary of image metadata (Camera make & model and image timestamp) for the image file
+    at original_file_path. Also generates a unique file name for the image based on datetime and camera
+    metadata stored with key 'file' in the result.   The resulting image name is formated like
+    MAKE_MODEL_DATETIME_ORIGINALNAME and has no spaces.
+    Args:
+        - original_file_path: path to a single camera trap image
     """
     original_basename = os.path.basename(original_file_path)
     with open(original_file_path, 'rb') as img:
@@ -147,8 +147,8 @@ def expand_megadetector_prediction(prediction, metadata_dict=None):
     return results
 
 def write_images_and_metadata(prediction_results, image_metadata, all_images_out, visualized_images, metadata_xlsx):
-    """Writes annotated output images with bounding boxes and copies all images to an additional folder using a unique naming scheme.
-    Also writes image metadata to xlsx.
+    """Writes annotated output images with bounding boxes and copies all images to an additional folder using a unique
+    naming scheme. Also writes image metadata to xlsx.
     Args:
         - prediction_results: List of dicts containing prediction info from Megadetector
         - image_metadata: List of dicts containing metadata about the image, should be same length as prediction_results
