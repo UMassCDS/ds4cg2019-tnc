@@ -224,7 +224,7 @@ def main(model_path, input_dir, output_dir):
 
     prediction_results = run_prediction(model_path, input_file_names, confidence_threshold)
     image_metadata = [pull_image_metadata_and_unique_file_name(p['file']) for p in prediction_results]
-    write_images_and_metadata(prediction_results, image_metadata, all_images_out, visualized_images_out)
+    write_images_and_metadata(prediction_results, image_metadata, all_images_out, visualized_images_out, metadata_xlsx)
 
 
 parser = argparse.ArgumentParser(description="Nature Conservancy Image Detector")

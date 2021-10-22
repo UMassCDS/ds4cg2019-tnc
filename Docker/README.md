@@ -1,6 +1,8 @@
 # Intro
 This folder contains everything necessary to run [Microsoft's Megadetector CameraTraps](https://github.com/Microsoft/CameraTraps) models inside a Docker container for the Nature Conservancy project.
 
+Note that this assumes your host machine has only a CPU. If you have a Nvidia GPU available, you can use it by changing the base image to a Tensorflow GPU build (the first `FROM` line of the Dockerfile) and using [nvidia-docker](https://github.com/NVIDIA/nvidia-docker). See the [Tensorflow Docker instructions](https://www.tensorflow.org/install/docker) for more details.
+
 # How to build the Docker image
 You must have [Docker](https://www.docker.com) installed on your machine. Navigate this `Docker` folder in the command line and run `docker build -t tnc .` to build the image and with a `tnc` tag.
 When this is finished you should see a message:
