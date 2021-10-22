@@ -1,5 +1,7 @@
 FROM tensorflow/tensorflow:1.14.0-py3
 
+# TODO Handle mounted file permissions appropriately by creating a user, see https://vsupalov.com/docker-shared-permissions/
+
 # Install fetch tools and dependencies for Pillow, the python image library
 RUN apt-get -y update
 RUN apt-get -y install wget git libjpeg8-dev zlib1g-dev libfreetype6-dev --fix-missing

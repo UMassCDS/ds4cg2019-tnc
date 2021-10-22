@@ -4,6 +4,7 @@ jsonpickle
 humanfriendly
 numpy
 matplotlib
+openpyxl
 Pillow>=5.3.0
 pandas
 tqdm
