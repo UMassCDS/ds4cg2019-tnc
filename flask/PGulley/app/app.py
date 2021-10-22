@@ -1,16 +1,19 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 
 
 app = Flask(__name__)
 
 @app.route("/")
 def landing():
-	#if logged in:
-	#	send the main interface
-	#if not:
-	#	send the login interface
+	return render_template("main.html", 
+		style_link = url_for("static", filename="style.css"),
+		js_link = url_for("static", filename="main.js")
+		)
 
-	return "it works"
+@app.route('/ajax_test')
+def ajax_test():
+	return {'status':"OK", 'data':"test"}
+
 
 
 #ajax path - runs on user interactions
