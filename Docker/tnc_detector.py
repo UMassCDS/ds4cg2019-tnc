@@ -5,7 +5,7 @@ a directory of image files and outputs three things:
 - A folder containing all the images renamed to a unique naming schema based on image metadata (camera make and model, timestamp)
 """
 import argparse
-import datetime
+from datetime import datetime
 import os
 import time
 import shutil
