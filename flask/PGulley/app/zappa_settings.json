@@ -1,0 +1,11 @@
+{
+    "basic_deployment_test": {
+        "app_function": "tnc_app.app",
+        "profile_name": null,
+        "project_name": "app",
+        "runtime": "python3.8",
+        "s3_bucket": "tnc-interface-access-9kt9qbgzys3grybh6jjt96zs4p6kruse2a-s3alias",
+	    "aws_region":"us-east-2",
+        "keep_warm":false,    
+	}	
+}

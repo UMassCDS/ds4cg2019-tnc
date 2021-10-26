@@ -8,12 +8,11 @@
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
 			  crossorigin="anonymous"></script>
-
-		
 	</head>
 	<body>
-
+		<h1>TNC App Functional Breakdown</h1>
 		<div class="main">
+			<h2> Basic Ajax </h2>
 			<button id="test_ajax">Test Interaction</button>
 			<table>
 				<thead>
@@ -25,7 +24,37 @@
 				</tbody>
 			</table>
 		</div>
+		<div class="main">
+			<h2> DDB Put </h2>
+			<input id="doc_text"> 
+			<button id="put_doc">Put Document</button>
+			<table>
+				<thead>
+					<tr>
+						<td> Document Text </td> <td> Document Status </td>
+					</tr>
+				</thead>
+				<tbody id="ddb_table_body">
+				</tbody>
+			</table>
+		</div>
+		<div class="main">
+			<h2> DDB Poll </h2>
+			<table>
+				<thead>
+					<tr><td>Document Text</td><td>Document Time</td></tr>
+				</thead>
+				<tbody id="ddb_poll_table">
 
+				</tbody>
+			</table>
+		</div>
+
+		<div class="main">
+			<h2> S3 Upload Loop </h2>
+			<input id="file_upload" type="file">
+			<button id="do_upload">Upload</button>
+		</div>
 	</body>
 	<script src={{js_link}}></script>
 </html>
