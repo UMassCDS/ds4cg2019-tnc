@@ -1,0 +1,6 @@
+{
+	"JOB_TABLE":"tnc-job-table-test",
+	"USR_INDEX": "user_id-index",
+	"STEP_INDEX":"step-index",
+	"S3_BUCKET":"tnc-test-app"
+}

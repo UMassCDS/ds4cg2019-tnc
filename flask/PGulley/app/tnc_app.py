@@ -52,7 +52,8 @@ def put_job_record_ddb():
 		'job_id':{"S": uuid.uuid1().hex},
 		'user_id':{"S":"test_id"},
 		'upload_location':{"S":location},
-		'timestamp':{"N":f'{time.time()}'}
+		'timestamp':{"N":f'{time.time()}'},
+		'step':{"N":"0"}
 	}
 	ddb_client.put_item(
 		TableName = settings["JOB_TABLE"],

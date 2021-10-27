@@ -9,3 +9,4 @@ Pillow>=5.3.0
 pandas
 tqdm
 requests
+boto3
