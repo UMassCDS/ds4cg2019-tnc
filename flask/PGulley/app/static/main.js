@@ -1,25 +1,4 @@
 
-//this just confirms that we can bounce info back and forth with lambda
-$("#test_ajax").click(function(){
-	$.ajax({
-		url:window.location.href+"/ajax_test",
-		data:{name:"nothin"}
-	}).done(function(resp){		
-		$("#sample_body").append(`<tr><td>${resp.status}</td><td>${resp.data}</td></tr>`);
-	});
-})
-
-//this route tests putting something into the dynamodb instance
-$("#put_doc").click(function(){
-	var document_text = $("#doc_text")[0].value
-	$("#doc_text").val("")
-	$.ajax({
-		url:window.location.href+"/put_doc",
-		data:{doc_text:document_text}
-	}).done(function(resp){
-		$("#ddb_table_body").append(`<tr><td>${resp.status}</td><td>${resp.doc_text}</td></tr>`);
-	})
-})
 
 //Just a rendering handle placeholder while I'm assembling the functionality
 job_line = function(job){

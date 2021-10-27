@@ -3,7 +3,6 @@ import json, uuid, time, hashids
 import boto3
 
 settings = json.load(open("app_settings.json"))
-
 ddb_client = boto3.client("dynamodb", "us-east-2")
 s3_client = boto3.client("s3", "us-east-2")
 
@@ -11,32 +10,10 @@ app = Flask(__name__)
 
 @app.route("/")
 def main():
-
-	post_url = s3_client.generate_presigned_post("tnc-test-app", "test")
-	
 	return render_template("main.html", 
 		style_link = url_for("static", filename="style.css"),
 		js_link = url_for("static", filename="main.js")
-		)
-
-@app.route('/ajax_test')
-def ajax_test():
-	return {'status':"OK", 'data':"test"}
-
-#an ajax route
-@app.route('/put_doc')
-def put_document():
-	item = {
-			'job_id':{"S": uuid.uuid1().hex},
-			'user_id':{"S":"test_id"},
-			'doc_text':{"S":request.args.get("doc_text")},
-			'timestamp':{"N":f'{time.time()}'}
-	}
-	ddb_client.put_item(
-		TableName = settings["JOB_TABLE"],
-		Item = item)
-	return {"status":"OK", "doc_text":item["doc_text"]["S"]}
-
+	)
 
 #an ajax route
 @app.route("/poll_ddb")
@@ -54,7 +31,6 @@ def poll_ddb():
 	#hypothetically this will query by user_id once that's implemented
 
 	return {"items": response["Items"]}
-
 
 #ajax route
 @app.route("/get_s3_upload_url")
