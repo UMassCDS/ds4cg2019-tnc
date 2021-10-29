@@ -216,7 +216,7 @@ def main(model_path, input_dir, output_dir):
     confidence_threshold = TFDetector.DEFAULT_OUTPUT_CONFIDENCE_THRESHOLD
     print("Model to be used for detection:", model_path)
     print("Confidence threshold to be used for detection:", confidence_threshold)
-    print(len(input_file_names), "image(s) will be read in from Google Drive folder:", input_dir)
+    print(len(input_file_names), "image(s) will be read in from folder:", input_dir)
     print("The results folder is:", output_dir)
     print("Detection metadata will be output to:", metadata_xlsx)
     print("Visualized annotated data will be output to:", visualized_images_out)

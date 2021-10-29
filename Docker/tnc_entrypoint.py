@@ -1,0 +1,141 @@
+import tnc_detector
+import json, time, zipfile, os, shutil
+import boto3
+import argparse
+
+ZIP_PATH = "./zips"
+TASK_PATH = "./tasks"
+OUT_PATH = "./output"
+
+settings = json.load(open("app_settings.json"))
+ddb_client = boto3.client("dynamodb", "us-east-2")
+s3_client = boto3.client("s3", "us-east-2")
+
+
+
+def reset_env():
+	if os.path.isdir(ZIP_PATH):
+		shutil.rmtree(ZIP_PATH)
+
+	if os.path.isdir(TASK_PATH):
+		shutil.rmtree(TASK_PATH)
+
+	if os.path.isdir(OUT_PATH):
+		shutil.rmtree(OUT_PATH)
+
+def setup_env():
+	if not os.path.isdir(ZIP_PATH):
+		os.mkdir(ZIP_PATH)
+
+	if not os.path.isdir(TASK_PATH):
+		os.mkdir(TASK_PATH)
+
+	if not os.path.isdir(OUT_PATH):
+		os.mkdir(OUT_PATH)
+
+
+class detector_job_manager():
+
+	#One class which manages downloading, detecting, and uploading.
+	#largely just for the convenience of keeping the paths organized between the tasks.
+
+	def __init__(self, model, ddb_result):
+		self.model = model
+
+		self.job_id = ddb_result["job_id"] #the primary key for the job table
+		self.location = ddb_result["upload_location"]["S"]
+		#we only need the key to download from s3- so the filename 
+		self.fname = self.location.split("/")[-1] 
+		#the task id is the original upload name plus a hash
+		self.task_id = self.fname.split(".")[0]
+		#the task name is just the original upload name, no hash:
+		#it's still present in the directory structure of the zipfile.
+		self.task_name = self.task_id.split("--")[0]
+		
+		#where we will dl the raw zip to
+		self.zip_loc = f"{ZIP_PATH}/{self.fname}"
+		
+		#where we will unzip it to
+		self.unzip_loc = f"{TASK_PATH}/{self.task_id}"
+		#adding the hash means we have to go one layer deeper in the zipfile to get to the images.
+		
+		self.task_loc = f"{TASK_PATH}/{self.task_id}/{self.task_name}"
+		
+		#where we will output results to
+		self.output_loc = f"{OUT_PATH}/{self.task_name}"
+		self.output_zip_name = f'{ZIP_PATH}/{self.task_id}-output'
+		self.output_zip = self.output_zip_name+".zip"
+		self.output_fname = self.output_zip.split("/")[-1]
+
+	def download(self):
+		s3_client.download_file(settings["S3_BUCKET"], self.fname, self.zip_loc)
+
+		f = open(self.zip_loc, "rb")
+		zipfile.ZipFile(f).extractall(self.unzip_loc)
+		f.close()
+
+		#Now would be the time to validate the contents of the zipfile, also. Only jpgs please!
+
+	def do_detection_task(self):
+		tnc_detector.main(self.model, self.task_loc, OUT_PATH)
+
+	def put_results(self):
+		#zip the results
+		zip_name = shutil.make_archive(self.output_zip_name,'zip', self.output_loc)
+		print(zip_name)
+		print(os.listdir(ZIP_PATH))
+		#upload to s3
+		s3_resp = s3_client.put_object(
+			Bucket=settings["S3_BUCKET"],
+			Body=open(f'{self.output_zip}', 'rb'),
+			Key=self.output_fname
+		)
+
+		#update the ddb table
+		ddb_resp = ddb_client.update_item(
+			TableName = settings["JOB_TABLE"],
+			Key = {
+				"job_id":self.job_id
+			},
+			UpdateExpression= "SET step = :step_val, output_location=:output_val",
+			ExpressionAttributeValues = {
+				":step_val":{"N":"1"},
+				":output_val":{"S":self.output_fname}
+
+			}
+
+		)
+		print(s3_resp)
+		print(ddb_resp)
+
+	def run_job(self):
+		self.download()
+		self.do_detection_task()
+		self.put_results()
+
+
+#Queries the dynamodb for jobs which are in step 0 (ie, just uploaded, this might change)
+#Downloads them to the current filesystem
+#and unzips them
+def do_queued_jobs(model):
+	queued_jobs = ddb_client.query(
+			TableName = settings["JOB_TABLE"],
+			IndexName = settings["STEP_INDEX"],
+			Select = "ALL_ATTRIBUTES",
+			KeyConditionExpression = "step = :step_val",
+			ExpressionAttributeValues = {":step_val": {"N": "0"}}
+		)
+	
+	for job in queued_jobs['Items']:
+		manager = detector_job_manager(model, ddb_result=job)
+		manager.run_job()
+
+
+parser = argparse.ArgumentParser(description="Nature Conservancy Image Detector")
+parser.add_argument("model", help="The path to the Megadetector model to use for detection")
+
+
+if __name__ == "__main__":
+	args = parser.parse_args()
+	setup_env()
+	do_queued_jobs(args.model)

@@ -40,7 +40,7 @@ def get_s3_upload_url():
 	timehash = hasher.encode(int(time.time()*10))
 	#s3 key is the original file name plus a hash of the current time.
 	#just to prevent collisions. 
-	full_key = f'{fname[0]}-{timehash}.{fname[1]}'
+	full_key = f'{fname[0]}--{timehash}.{fname[1]}'
 	post_url = s3_client.generate_presigned_url("put_object",
 			{"Bucket":settings["S3_BUCKET"], "Key":full_key})
 	return {"uploadURL":post_url}

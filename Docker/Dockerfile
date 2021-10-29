@@ -1,5 +1,9 @@
 FROM tensorflow/tensorflow:1.14.0-py3
 
+
+
+RUN aws ecr get-login --no-include-email | bash
+
 # TODO Handle mounted file permissions appropriately by creating a user, see https://vsupalov.com/docker-shared-permissions/
 
 # Install fetch tools and dependencies for Pillow, the python image library
@@ -18,5 +22,7 @@ RUN wget -nv -O megadetector_v4_1_0.pb https://lilablobssc.blob.core.windows.net
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY tnc_detector.py tnc_detector.py
+COPY tnc_entrypoint.py tnc_entrypoint.py
+COPY app_settings.json app_settings.json
 
-ENTRYPOINT ["python3", "tnc_detector.py", "megadetector_v4_1_0.pb"]
+ENTRYPOINT ["python3", "tnc_entrypoint.py", "megadetector_v4_1_0.pb"]
