@@ -1,8 +1,6 @@
 FROM tensorflow/tensorflow:1.14.0-py3
 
-ENV AWS_ACCESS_KEY_ID=AKIARKW6BIIZBVP3JJHR
-ENV AWS_SECRET_ACCESS_KEY=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
-ENV AWS_REGION=us-east-2
+
 
 RUN aws ecr get-login --no-include-email | bash
 
