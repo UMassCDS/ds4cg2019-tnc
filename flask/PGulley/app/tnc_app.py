@@ -45,6 +45,21 @@ def get_s3_upload_url():
 			{"Bucket":settings["S3_BUCKET"], "Key":full_key})
 	return {"uploadURL":post_url}
 
+@app.route("/get_s3_download_url")
+def get_s3_download_url():
+	job_id = request.args.get("job_id")
+	job = ddb_client.get_item(
+		TableName = settings["JOB_TABLE"],
+		Key = {"job_id":{"S":job_id}})["Item"]
+	print(job)
+	get_url = s3_client.generate_presigned_url("get_object",{
+		
+		"Bucket":settings["S3_BUCKET"],
+		"Key":job['output_location']['S']
+	})
+	return {"get_url":get_url}
+
+
 @app.route("/put_job_record_ddb")
 def put_job_record_ddb():
 	location = request.args.get("location")

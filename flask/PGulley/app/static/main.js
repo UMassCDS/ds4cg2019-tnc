@@ -2,11 +2,12 @@
 
 //Just a rendering handle placeholder while I'm assembling the functionality
 job_line = function(job){
-	if(job.doc_text != undefined){
-		return `<tr><td>${job.doc_text.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td></tr>`
-	}else{
-		
-		return `<tr><td>${job.upload_location.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td></tr>`
+	if(job.output_location == undefined){
+		return `<tr><td>${job.upload_location.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td><td>Not Ready</td></tr>`
+	}
+	else{
+		return `<tr><td>${job.upload_location.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td>
+		<td><button value='${job.job_id.S}' class="download">Download</button></td></tr>`
 	}
 	
 }
@@ -26,8 +27,6 @@ poll_ddb = function(){
 
 poll_ddb() //call pollddb on load
 setInterval(poll_ddb, 1000*60*10) //and also then every 10 minutes
-
-
 
 ///S3 upload concerns:
 //- user uploads the file to the browser
@@ -87,4 +86,15 @@ $("#do_upload").click(function(){
 })
 
 
-
+$('body').on('click', 'button.download', function(){
+	console.log("got attached")
+	download_job_id = $(this)[0].value
+	$.ajax({
+		url:window.location.href+"/get_s3_download_url",
+		data:{job_id:download_job_id}
+	}).done(function(resp){
+		link = document.createElement("a")
+		link.href = resp.get_url
+		link.click()
+	})
+})
