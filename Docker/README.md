@@ -16,9 +16,20 @@ Successfully built <image-id>
 Successfully tagged tnc:latest
 ```
 
+## AWS Authentication
+
+Note that althought the app will build, it won't run by default due to a credential error from AWS. 
+Before final deployment, we'll need to figure out a better way to do this, but for now, you'll need to add the following lines
+to the dockerfile before the image will run:
+
+'''
+ENV AWS_ACCESS_KEY_ID=your-access-key-id
+ENV AWS_SECRET_ACCESS_KEY=your-secret-access-key
+ENV AWS_REGION=us-east-2
+'''
+
 # How to run the container
-Once you have built the image, you will run it while mounting your input and output directories to get predictions from the model.
-For example, you have a folder `tnc_dir` on your computer which contains a directory `input_images`, and you'd like the results of the model to go in `tnc_dir/model_output`. You'll be mounting the `tnc_dir` to the container (at the root directory) and using the `input_images` and `model_output` folders as arguments to the script:
+Simply run it- because the image now downloads from s3 instead of looking for local files, there's no need to define the input and output directories or to bother mounting them. 
 ```
-$ docker run --mount type=bind,source=tnc_dir,target=/tnc_dir tnc /tnc_dir/input_images /tnc_dir/model_output
+$ docker run tnc
 ```
