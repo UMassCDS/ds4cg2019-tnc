@@ -51,9 +51,8 @@ def get_s3_download_url():
 	job = ddb_client.get_item(
 		TableName = settings["JOB_TABLE"],
 		Key = {"job_id":{"S":job_id}})["Item"]
-	print(job)
+
 	get_url = s3_client.generate_presigned_url("get_object",{
-		
 		"Bucket":settings["S3_BUCKET"],
 		"Key":job['output_location']['S']
 	})

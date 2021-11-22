@@ -1,8 +1,6 @@
 FROM tensorflow/tensorflow:1.14.0-py3
 
-
-
-RUN aws ecr get-login --no-include-email | bash
+# RUN aws ecr get-login --no-include-email | bash
 
 # TODO Handle mounted file permissions appropriately by creating a user, see https://vsupalov.com/docker-shared-permissions/
 
