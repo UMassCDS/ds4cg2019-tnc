@@ -3,7 +3,7 @@ import json, time, zipfile, os, shutil
 import boto3
 import argparse
 
-from simple_scheduler import recurring_scheduler
+from simple_scheduler.recurring import recurring_scheduler
 
 ZIP_PATH = "./zips"
 TASK_PATH = "./tasks"
@@ -84,8 +84,6 @@ class detector_job_manager():
 	def put_results(self):
 		#zip the results
 		zip_name = shutil.make_archive(self.output_zip_name,'zip', self.output_loc)
-		print(zip_name)
-		print(os.listdir(ZIP_PATH))
 		#upload to s3
 		s3_resp = s3_client.put_object(
 			Bucket=settings["S3_BUCKET"],
@@ -127,10 +125,11 @@ def do_queued_jobs(model):
 			KeyConditionExpression = "step = :step_val",
 			ExpressionAttributeValues = {":step_val": {"N": "0"}}
 		)
-	print(f'Found {queued_jobs["Items"].length} jobs in ddb')
+	print(f'Found {len(queued_jobs["Items"])} jobs in ddb')
 	for job in queued_jobs['Items']:
 		manager = detector_job_manager(model, ddb_result=job)
 		manager.run_job()
+
 
 
 def do_task(model = "megadetector_v4_1_0.pb"):
@@ -145,7 +144,11 @@ parser = argparse.ArgumentParser(description="Nature Conservancy Image Detector"
 parser.add_argument("model", help="The path to the Megadetector model to use for detection")
 
 
+
 if __name__ == "__main__":
 	args = parser.parse_args()
+	#do_task(args.model)
+        #run it every ten minutes, for now.
+	print("starting scheduler")
 	recurring_scheduler.add_job(do_task, 600, job_name="megadetector task")
-
+	recurring_scheduler.run()
