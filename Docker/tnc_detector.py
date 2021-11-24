@@ -102,12 +102,16 @@ def pull_image_metadata_and_unique_file_name(original_file_path):
         model = verify_nonempty(image_info.get(MODEL_KEY, MISSING_DEFAULT).replace("_", "-").strip())
 
         date_string = image_info.get("datetime_original", MISSING_DEFAULT)
-        parsed_datetime = datetime.strptime(date_string, '%Y:%m:%d %H:%M:%S')
+        if date_string != MISSING_DEFAULT:
+            parsed_datetime = datetime.strptime(date_string, '%Y:%m:%d %H:%M:%S')
+            timestamp_str = parsed_datetime.isoformat()
+        else:
+            timestamp_str = MISSING_DEFAULT
 
     # This could be a bit annoying if the original filename has underscores in it, but
     # let's just go with this for now.
     # There shouldn't be any reason to map back to the original filename anyway.
-    timestamp_str = parsed_datetime.isoformat()
+    
     new_file_name = "_".join([make, model, timestamp_str, original_basename])
     new_file_name = new_file_name.replace(" ", "")
     return {MAKE_KEY: make, MODEL_KEY: model, FILE_KEY: new_file_name, TIMESTAMP_KEY: timestamp_str}
