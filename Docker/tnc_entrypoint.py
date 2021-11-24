@@ -147,8 +147,8 @@ parser.add_argument("model", help="The path to the Megadetector model to use for
 
 if __name__ == "__main__":
 	args = parser.parse_args()
-	#do_task(args.model)
+	do_task(args.model)
         #run it every ten minutes, for now.
 	print("starting scheduler")
-	recurring_scheduler.add_job(do_task, 600, job_name="megadetector task")
-	recurring_scheduler.run()
+	#recurring_scheduler.add_job(do_task, 600, job_name="megadetector task")
+	#recurring_scheduler.run()
