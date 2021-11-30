@@ -79,8 +79,8 @@ class detector_job_manager():
 		f.close()
 
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
-	    	for f in fnames:
-	    		os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
+			for f in fnames:
+				os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 
 		#Now would be the time to validate the contents of the zipfile, also. Only jpgs please!
 
