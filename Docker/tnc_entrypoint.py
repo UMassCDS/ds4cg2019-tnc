@@ -58,10 +58,10 @@ class detector_job_manager():
 		self.zip_loc = f"{ZIP_PATH}/{self.fname}"
 		
 		#where we will unzip it to
-		self.unzip_loc = f"{TASK_PATH}/{self.task_id}"
-		#adding the hash means we have to go one layer deeper in the zipfile to get to the images.
+		self.unzip_loc = f"{TASK_PATH}/{self.task_id}-raw"
 		
-		self.task_loc = f"{TASK_PATH}/{self.task_id}/{self.task_name}"
+
+		self.task_loc = f"{TASK_PATH}/{self.task_id}"
 		
 		#where we will output results to
 		self.output_loc = f"{OUT_PATH}/{self.task_name}"
@@ -73,10 +73,20 @@ class detector_job_manager():
 		s3_client.download_file(settings["S3_BUCKET"], self.fname, self.zip_loc)
 
 		f = open(self.zip_loc, "rb")
-		zipfile.ZipFile(f).extractall(self.unzip_loc)
+		z = zipfile.ZipFile(f)
+
+		z.extractall(self.unzip_loc)
 		f.close()
 
+		for dpath, dname, fnames in os.walk(self.unzip_loc):
+	    	for f in fnames:
+	    		os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
+
 		#Now would be the time to validate the contents of the zipfile, also. Only jpgs please!
+
+ 
+
+
 
 	def do_detection_task(self):
 		tnc_detector.main(self.model, self.task_loc, OUT_PATH)
