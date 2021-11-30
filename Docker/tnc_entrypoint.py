@@ -64,7 +64,7 @@ class detector_job_manager():
 		self.task_loc = f"{TASK_PATH}/{self.task_id}"
 		
 		#where we will output results to
-		self.output_loc = f"{OUT_PATH}/{self.task_name}"
+		self.output_loc = f"{OUT_PATH}/{self.task_id}"
 		self.output_zip_name = f'{ZIP_PATH}/{self.task_id}-output'
 		self.output_zip = self.output_zip_name+".zip"
 		self.output_fname = self.output_zip.split("/")[-1]
@@ -83,8 +83,6 @@ class detector_job_manager():
 				os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 
 		#Now would be the time to validate the contents of the zipfile, also. Only jpgs please!
-
- 
 
 
 
