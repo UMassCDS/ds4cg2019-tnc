@@ -77,7 +77,7 @@ class detector_job_manager():
 
 		z.extractall(self.unzip_loc)
 		f.close()
-
+		os.mkdir(self.task_loc)
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
 				os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
