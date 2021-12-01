@@ -77,11 +77,42 @@ class detector_job_manager():
 
 		z.extractall(self.unzip_loc)
 		f.close()
+
+		ddb_resp = ddb_client.update_item(
+			TableName = settings["JOB_TABLE"],
+			Key = {
+				"job_id":self.job_id
+			},
+			UpdateExpression= "SET step = :step_val",
+			ExpressionAttributeValues = {
+				":step_val":{"N":"1"},
+				
+
+			}
+
+		)
+		error = False
 		os.mkdir(self.task_loc)
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
-				os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
+				if(".jpg" in f or ".jpeg" in f):
+					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
+				else:
+					error = True
+		
+		if error:
+			ddb_resp = ddb_client.update_item(
+			TableName = settings["JOB_TABLE"],
+			Key = {
+				"job_id":self.job_id
+			},
+			UpdateExpression= "SET step = :step_val, error_msg=:error_msg",
+			ExpressionAttributeValues = {
+				":step_val":{"N":"3"},
+				":error_msg":{"S": "Zipfile contains bad file types"}
+			}
 
+		)
 		#Now would be the time to validate the contents of the zipfile, also. Only jpgs please!
 
 
@@ -107,7 +138,7 @@ class detector_job_manager():
 			},
 			UpdateExpression= "SET step = :step_val, output_location=:output_val",
 			ExpressionAttributeValues = {
-				":step_val":{"N":"1"},
+				":step_val":{"N":"2"},
 				":output_val":{"S":self.output_fname}
 
 			}
