@@ -151,7 +151,7 @@ class detector_job_manager():
 
 	def run_job(self):
 		self.download()
-		if(not error):
+		if(not self.error):
 			self.do_detection_task()
 			self.put_results()
 
