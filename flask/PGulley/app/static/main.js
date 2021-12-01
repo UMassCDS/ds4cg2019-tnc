@@ -1,4 +1,27 @@
 
+var opts = {
+  lines: 13, // The number of lines to draw
+  length: 38, // The length of each line
+  width: 17, // The line thickness
+  radius: 45, // The radius of the inner circle
+  scale: 0.1, // Scales overall size of the spinner
+  corners: 1, // Corner roundness (0..1)
+  speed: 1, // Rounds per second
+  rotate: 0, // The rotation offset
+  animation: 'spinner-line-fade-quick', // The CSS animation name for the lines
+  direction: 1, // 1: clockwise, -1: counterclockwise
+  color: '#ffffff', // CSS color or array of colors
+  fadeColor: 'transparent', // CSS color or array of colors
+  top: '-5', // Top position relative to parent
+  left: '50%', // Left position relative to parent
+  shadow: '0 0 1px transparent', // Box-shadow for the lines
+  zIndex: 2000000000, // The z-index (defaults to 2e9)
+  className: 'spinner', // The CSS class to assign to the spinner
+  position: 'relative', // Element positioning
+};
+
+upload_spinner = new Spin.Spinner(opts)
+
 
 //Just a rendering handle placeholder while I'm assembling the functionality
 job_line = function(job){
@@ -58,6 +81,7 @@ $("#file_upload").change(function(){
 
 $("#do_upload").click(function(){
 	if(file_to_upload != ""){
+		upload_spinner.spin($("#upload_spinner")[0])
 		$.ajax({
 			url:window.location.href+"/get_s3_upload_url",
 			data:{filename:fname}
@@ -85,7 +109,7 @@ $("#do_upload").click(function(){
 						url:window.location.href+"/put_job_record_ddb",
 						data:{location:resp.url.split("?")[0]}
 					}).done(function(resp){
-						console.log("whole loop complete")
+						upload_spinner.stop()
 						poll_ddb()
 					})
 				}

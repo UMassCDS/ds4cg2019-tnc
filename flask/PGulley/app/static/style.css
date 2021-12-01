@@ -18,3 +18,8 @@ h2{
 thead{
 	font-weight: bold
 }
+
+#upload_spinner{
+	margin-left: 20px;
+	display: inline-block;
+}
