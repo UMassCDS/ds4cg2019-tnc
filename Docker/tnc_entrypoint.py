@@ -69,6 +69,8 @@ class detector_job_manager():
 		self.output_zip = self.output_zip_name+".zip"
 		self.output_fname = self.output_zip.split("/")[-1]
 
+		self.error = False
+
 	def download(self):
 		s3_client.download_file(settings["S3_BUCKET"], self.fname, self.zip_loc)
 
@@ -91,16 +93,16 @@ class detector_job_manager():
 			}
 
 		)
-		error = False
+		
 		os.mkdir(self.task_loc)
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
 				if(".jpg" in f or ".jpeg" in f):
 					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 				else:
-					error = True
+					self.error = True
 		
-		if error:
+		if self.error:
 			ddb_resp = ddb_client.update_item(
 			TableName = settings["JOB_TABLE"],
 			Key = {
@@ -149,8 +151,9 @@ class detector_job_manager():
 
 	def run_job(self):
 		self.download()
-		self.do_detection_task()
-		self.put_results()
+		if(not error):
+			self.do_detection_task()
+			self.put_results()
 
 
 #Queries the dynamodb for jobs which are in step 0 (ie, just uploaded, this might change)

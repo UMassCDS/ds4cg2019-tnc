@@ -10,10 +10,16 @@
 			  crossorigin="anonymous"></script>
 	</head>
 	<body>
-		<h1>TNC App Functional Breakdown</h1>
+		<h1>TNC App </h1>
 		
 		<div class="main">
-			<h2> DDB Poll </h2>
+			<h2> Upload Files </h2>
+			<input id="file_upload" type="file">
+			<button id="do_upload">Upload</button>
+		</div>
+
+		<div class="main">
+			<h2> Tasks </h2>
 			<table>
 				<thead>
 					<tr><td>Document Text</td><td>Document Time</td><td> Output </td></tr>
@@ -24,11 +30,7 @@
 			</table>
 		</div>
 
-		<div class="main">
-			<h2> S3 Upload Loop </h2>
-			<input id="file_upload" type="file">
-			<button id="do_upload">Upload</button>
-		</div>
+
 	</body>
 	<script src={{js_link}}></script>
 </html>
