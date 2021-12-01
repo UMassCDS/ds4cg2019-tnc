@@ -111,7 +111,7 @@ class detector_job_manager():
 			UpdateExpression= "SET step = :step_val, error_msg=:error_msg",
 			ExpressionAttributeValues = {
 				":step_val":{"N":"3"},
-				":error_msg":{"S": "Zipfile contains bad file types"}
+				":error_msg":{"S": "Bad Zipfile"}
 			}
 
 		)

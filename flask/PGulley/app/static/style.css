@@ -1,11 +1,20 @@
 .main{
 	margin: 10px;
-	padding: 5px;
+	padding: 10px;
 	background-color: grey;
 	
 }
 
+h1{
+	margin-left: 10px;
+}
+
 h2{
+	
 	margin-top: 10px;
 	margin-bottom: 10px;
+}
+
+thead{
+	font-weight: bold
 }

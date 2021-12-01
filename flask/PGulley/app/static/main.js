@@ -8,15 +8,17 @@ job_line = function(job){
 		
 	}
 	if(job.step.N == 1){
-		state_message = "working"
+		state_message = "Working"
 	}
 	if(job.step.N == 2){
-		state_message = `<button value='${job.job_id.S}' class="download">Download</button>`
+		state_message = `Complete: <button value='${job.job_id.S}' class="download">Download</button>`
 	}
 	if(job.step.N == 3){
 		state_message = `Error: ${job.error_msg.S }`
 	}
-	return `<tr><td>${job.upload_location.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td><td>${state_message}</td></tr>`
+
+	filename = job.upload_location.S.split("/").pop()
+	return `<tr><td>${filename}</td><td>${new Date(job.timestamp.N*1000).toString().split("GMT")[0]}</td><td>${state_message}</td></tr>`
 	
 }
 
