@@ -3,17 +3,17 @@
 //Just a rendering handle placeholder while I'm assembling the functionality
 job_line = function(job){
 	state_message = ""
-	if(job.state.N == 0){
+	if(job.step.N == 0){
 		state_message = "Waiting"
 		
 	}
-	if(job.state.N == 1){
+	if(job.step.N == 1){
 		state_message = "working"
 	}
-	if(job.state.N = 2){
+	if(job.step.N == 2){
 		state_message = `<button value='${job.job_id.S}' class="download">Download</button>`
 	}
-	if(job.state.N = 3){
+	if(job.step.N == 3){
 		state_message = `Error: ${job.error_msg.S }`
 	}
 	return `<tr><td>${job.upload_location.S}</td><td>${new Date(job.timestamp.N*1000).toString()}</td><td>${state_message}</td></tr>`
