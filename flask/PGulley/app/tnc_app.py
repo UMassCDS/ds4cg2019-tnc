@@ -12,7 +12,9 @@ app = Flask(__name__)
 def main():
 	return render_template("main.html", 
 		style_link = url_for("static", filename="style.css"),
-		js_link = url_for("static", filename="main.js")
+		js_link = url_for("static", filename="main.js"),
+		spinjs_link = url_for("static", filename="spin.js"),
+		spincss_link = url_for("static", filename="spin.css")
 	)
 
 #an ajax route

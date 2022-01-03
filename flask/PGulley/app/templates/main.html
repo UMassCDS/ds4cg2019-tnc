@@ -1,8 +1,9 @@
 <html>
 
 	<head>
-		<title>TNC App</title>
+		<title> TNC App</title>
 		<link rel="Stylesheet" href={{style_link}}>
+		<link rel="Stylesheet" href={{spincss_link}}>
 
 		<script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -13,17 +14,24 @@
 		<h1>TNC App </h1>
 		
 		<div class="main">
-			<h2> Upload Files </h2>
+			<h2> Upload Zip File </h2>
+			Please only submit zip files containing .jpeg images </b>
+			<hr>
 			<input id="file_upload" type="file">
 			<button id="do_upload">Upload</button>
+			<div id="upload_spinner"></div>
 		</div>
 
 		<div class="main">
 			<h2> Tasks </h2>
+			Queued and completed tasks will appear here. </b>
+			Please allow 10-20 minutes for the model to produce results </b> 
+			<hr>
 			<table>
 				<thead>
-					<tr><td>Document Text</td><td>Document Time</td><td> Output </td></tr>
+					<tr><td>Filename</td><td>Upload Time</td><td> Output </td></tr>
 				</thead>
+				
 				<tbody id="ddb_poll_table">
 
 				</tbody>
@@ -32,5 +40,6 @@
 
 
 	</body>
+	<script src={{spinjs_link}}></script>
 	<script src={{js_link}}></script>
 </html>
