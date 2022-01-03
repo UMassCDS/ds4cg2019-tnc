@@ -77,9 +77,9 @@ class detector_job_manager():
 		f = open(self.zip_loc, "rb")
 		z = zipfile.ZipFile(f)
 
-		sizelog = open("sizelog.txt", 'a')
-		sizelog.write(f'======== JOB {self.job_id} ========\n')
-		sizelog.write("zipsize: "+str(os.path.getsize(self.zip_loc)) + "\n")
+		#sizelog = open("sizelog.txt", 'a')
+		print(f'======== JOB {self.job_id} ========\n')
+		print("zipsize: "+str(os.path.getsize(self.zip_loc)) + "\n")
 
 		z.extractall(self.unzip_loc)
 		f.close()
@@ -108,7 +108,7 @@ class detector_job_manager():
 					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 				else:
 					self.error = True
-		sizelog.write(f"num_f: {str(num_f)} \n")
+		print(f"num_f: {str(num_f)} \n")
 
 		if self.error:
 			ddb_resp = ddb_client.update_item(
@@ -154,9 +154,9 @@ class detector_job_manager():
 			}
 
 		)
-		print(s3_resp)
-		print(ddb_resp)
-		open("sizelog.txt", "a").write("SUCCESS \n")
+		#print(s3_resp)
+		#print(ddb_resp)
+		print(f"{self.job_id}: SUCCESS \n")
 
 	def run_job(self):
 		setup_env()
