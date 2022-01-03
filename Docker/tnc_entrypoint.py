@@ -79,7 +79,7 @@ class detector_job_manager():
 
 		sizelog = open("sizelog.txt", 'a')
 		sizelog.write(f'======== JOB {self.job_id} ========\n')
-		sizelog.write("zipsize: "+os.path.getsize(self.ziploc) + "\n")
+		sizelog.write("zipsize: "+os.path.getsize(self.zip_loc) + "\n")
 
 		z.extractall(self.unzip_loc)
 		f.close()
