@@ -150,10 +150,12 @@ class detector_job_manager():
 		print(ddb_resp)
 
 	def run_job(self):
+		setup_env()
 		self.download()
 		if(not self.error):
 			self.do_detection_task()
 			self.put_results()
+			reset_env()
 
 
 #Queries the dynamodb for jobs which are in step 0 (ie, just uploaded, this might change)
@@ -179,7 +181,7 @@ def do_task(model = "megadetector_v4_1_0.pb"):
 	#Give the model by default here for scheduler's sake, while modularity isn't a concern.
 	setup_env()
 	do_queued_jobs(args.model)
-	reset_env()
+	
 
 
 parser = argparse.ArgumentParser(description="Nature Conservancy Image Detector")
