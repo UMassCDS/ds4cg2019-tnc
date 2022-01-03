@@ -79,7 +79,7 @@ class detector_job_manager():
 
 		sizelog = open("sizelog.txt", 'a')
 		sizelog.write(f'======== JOB {self.job_id} ========\n')
-		sizelog.write("zipsize: "+os.path.getsize(self.zip_loc) + "\n")
+		sizelog.write("zipsize: "+str(os.path.getsize(self.zip_loc)) + "\n")
 
 		z.extractall(self.unzip_loc)
 		f.close()
@@ -108,7 +108,7 @@ class detector_job_manager():
 					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 				else:
 					self.error = True
-		sizelog.writeline(f"num_f: {num_f} \n")
+		sizelog.write(f"num_f: {str(num_f)} \n")
 
 		if self.error:
 			ddb_resp = ddb_client.update_item(
@@ -203,5 +203,6 @@ if __name__ == "__main__":
 	do_task(args.model)
         #run it every ten minutes, for now.
 	print("starting scheduler")
-	#recurring_scheduler.add_job(do_task, 600, job_name="megadetector task")
+    
+        #recurring_scheduler.add_job(do_task, 600, job_name="megadetector task")
 	#recurring_scheduler.run()
