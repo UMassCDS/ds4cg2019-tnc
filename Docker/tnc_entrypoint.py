@@ -77,6 +77,10 @@ class detector_job_manager():
 		f = open(self.zip_loc, "rb")
 		z = zipfile.ZipFile(f)
 
+		sizelog = open("sizelog.txt", 'a')
+		sizelog.writeline(f'======== JOB {self.job_id} ========')
+		sizelog.writeline("zipsize: "+os.path.getsize(self.ziploc))
+
 		z.extractall(self.unzip_loc)
 		f.close()
 
@@ -95,13 +99,17 @@ class detector_job_manager():
 		)
 		
 		os.mkdir(self.task_loc)
+		
+		num_f = 0
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
 				if(".jpg" in f or ".jpeg" in f):
+					num_f += 1
 					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 				else:
 					self.error = True
-		
+		sizelog.writeline(f"num_f: {num_f}")
+
 		if self.error:
 			ddb_resp = ddb_client.update_item(
 			TableName = settings["JOB_TABLE"],
@@ -148,6 +156,7 @@ class detector_job_manager():
 		)
 		print(s3_resp)
 		print(ddb_resp)
+		print("SUCCESS")
 
 	def run_job(self):
 		setup_env()
