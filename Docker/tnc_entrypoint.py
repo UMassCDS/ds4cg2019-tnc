@@ -103,7 +103,7 @@ class detector_job_manager():
 		num_f = 0
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
-				if(".jpg" in f or ".jpeg" in f):
+				if(".jpg" in f or ".jpeg" in f and f[0]! = "."):
 					num_f += 1
 					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 				else:
