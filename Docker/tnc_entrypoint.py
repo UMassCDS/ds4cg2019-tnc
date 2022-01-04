@@ -101,14 +101,17 @@ class detector_job_manager():
 		os.mkdir(self.task_loc)
 		bad_files = []
 		num_f = 0
+		
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
-				if(".jpg" in f or ".jpeg" in f and f[0]! = "."):
-					num_f += 1
-					os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
-				else:
-					bad_files.append(f)
-					self.error = True
+				if(f[0] != "."):
+					if(".jpg" in f or ".jpeg" in f):
+						num_f += 1
+						os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
+					else:
+						bad_files.append(f)
+						self.error = True
+
 		print(f"num_f: {str(num_f)} \n")
 		print(bad_files)
 		if self.error:
