@@ -101,11 +101,11 @@ class detector_job_manager():
 		os.mkdir(self.task_loc)
 		bad_files = []
 		num_f = 0
-		
+
 		for dpath, dname, fnames in os.walk(self.unzip_loc):
 			for f in fnames:
 				if(f[0] != "."):
-					if(".jpg" in f or ".jpeg" in f):
+					if(".jpg" in f or ".jpeg" in f or ".JPG" in f):
 						num_f += 1
 						os.rename(os.path.join(dpath, f), os.path.join(self.task_loc, f))
 					else:
