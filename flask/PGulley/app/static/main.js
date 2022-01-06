@@ -41,7 +41,7 @@ job_line = function(job){
 	}
 
 	filename = job.upload_location.S.split("/").pop()
-	return `<tr><td>${filename}</td><td>${new Date(job.timestamp.N*1000).toString().split("GMT")[0]}</td><td>${state_message}</td></tr>`
+	return `<tr><td>${filename}</td><td sorttable_customkey="${job.timestamp.N}">${new Date(job.timestamp.N*1000).toString().split("GMT")[0]}</td><td>${state_message}</td></tr>`
 	
 }
 
@@ -56,6 +56,7 @@ poll_ddb = function(){
 			table.append(job_line(job_record))
 		}
 	})
+	sorttable.makeSortable(table);
 }
 
 poll_ddb() //call pollddb on load
