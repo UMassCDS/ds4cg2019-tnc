@@ -115,7 +115,8 @@ function do_upload_loop_drag_drop(fname, file){
 					}).done(function(resp){
 						
 						dz_spinner.stop()
-						$("#dz_success").fadeIn()
+						$(".dropzone").addClass("success", {duration:250})
+						$("#dz_success").fadeIn(250)
 						setTimeout(function(){
 							$(".dropzone").removeClass("success", {duration:500})
 							$("#dz_success").fadeOut(500)
@@ -162,7 +163,6 @@ $("#do_upload").click(function(){
 						data:{location:resp.url.split("?")[0]}
 					}).done(function(resp){
 						upload_spinner.stop()
-
 						poll_ddb()
 					})
 				}
@@ -206,7 +206,7 @@ input_reader.onloadend = function(e){
 	}
 	else{
 		file = e.target.result
-		$(".dropzone").addClass("success", {duration:250})
+		
 		do_upload_loop_drag_drop(fname, file)
 	}
 	
