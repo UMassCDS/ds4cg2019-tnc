@@ -15,7 +15,8 @@ def main():
 		js_link = url_for("static", filename="main.js"),
 		spinjs_link = url_for("static", filename="spin.js"),
 		spincss_link = url_for("static", filename="spin.css"),
-		sorttable_link = url_for("static", filename="sorttable.js")
+		sorttable_link = url_for("static", filename="sorttable.js"),
+
 	)
 
 #an ajax route

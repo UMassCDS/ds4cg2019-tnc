@@ -5,6 +5,7 @@
 		<link rel="Stylesheet" href={{style_link}}>
 		<link rel="Stylesheet" href={{spincss_link}}>
 
+
 		<script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -12,7 +13,16 @@
 	</head>
 	<body>
 		<h1>TNC App </h1>
-		
+		<div class="main">
+			<h2> Dropzone Test </h2>
+			<div class="dropzone" 
+					ondrop="dropHandler(event)" 
+					ondragover="dragOverHandler(event)" 
+					ondragenter="dragenter(event)"
+					ondragexit="dragexit(event)">
+				<div id="dropzone_spinner"></div>
+			</div>
+		</div>
 		<div class="main">
 			<h2> Upload Zip File </h2>
 			Please only submit zip files containing .jpeg images </b>

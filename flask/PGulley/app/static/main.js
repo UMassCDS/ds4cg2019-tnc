@@ -6,22 +6,25 @@ var opts = {
   radius: 45, // The radius of the inner circle
   scale: 0.1, // Scales overall size of the spinner
   corners: 1, // Corner roundness (0..1)
-  speed: 1, // Rounds per second
+  speed: 0.5, // Rounds per second
   rotate: 0, // The rotation offset
-  animation: 'spinner-line-fade-quick', // The CSS animation name for the lines
+  animation: 'spinner-line-fade-more', // The CSS animation name for the lines
   direction: 1, // 1: clockwise, -1: counterclockwise
   color: '#ffffff', // CSS color or array of colors
   fadeColor: 'transparent', // CSS color or array of colors
-  top: '-5', // Top position relative to parent
+  top: 0, // Top position relative to parent
   left: '50%', // Left position relative to parent
-  shadow: '0 0 1px transparent', // Box-shadow for the lines
+  shadow: '0 0 1px transsparent', // Box-shadow for the lines
   zIndex: 2000000000, // The z-index (defaults to 2e9)
   className: 'spinner', // The CSS class to assign to the spinner
   position: 'relative', // Element positioning
 };
 
-upload_spinner = new Spin.Spinner(opts)
 
+
+upload_spinner = new Spin.Spinner(opts)
+opts.scale = 0.5
+dz_spinner = new Spin.Spinner(opts)
 
 //Just a rendering handle placeholder while I'm assembling the functionality
 job_line = function(job){
@@ -55,8 +58,9 @@ poll_ddb = function(){
 		for( const job_record of resp["items"]){
 			table.append(job_line(job_record))
 		}
+		//sorttable.makeSortable(table);
 	})
-	sorttable.makeSortable(table);
+	
 }
 
 poll_ddb() //call pollddb on load
@@ -80,6 +84,40 @@ $("#file_upload").change(function(){
 	fname = $(this)[0].files[0].name
 })
 
+
+function do_upload_loop_drag_drop(fname, file){
+	
+	$.ajax({
+			url:window.location.href+"/get_s3_upload_url",
+			data:{filename:fname}
+	}).done(function(resp){
+		console.log(resp)
+		binary = atob(file.split(",")[1]) 
+		array = []
+		for (var i = 0; i < binary.length; i++) {
+	    array.push(binary.charCodeAt(i))
+	  }
+	  blobData = new Blob([new Uint8Array(array)], {type: 'zip'})
+	  fetch(resp.uploadURL,{
+				 
+				method:"PUT",
+				body:blobData
+			
+			}).then(function(resp){
+				if(resp.status == 200){
+					$.ajax({
+						url:window.location.href+"/put_job_record_ddb",
+						data:{location:resp.url.split("?")[0]}
+					}).done(function(resp){
+						dz_spinner.stop()
+						poll_ddb()
+					})
+				}
+			})
+
+	})
+}
+
 $("#do_upload").click(function(){
 	if(file_to_upload != ""){
 		upload_spinner.spin($("#upload_spinner")[0])
@@ -96,8 +134,8 @@ $("#do_upload").click(function(){
 			array = []
 			for (var i = 0; i < binary.length; i++) {
 	            array.push(binary.charCodeAt(i))
-	        }
-	       	blobData = new Blob([new Uint8Array(array)], {type: 'zip'})
+	      }
+	    blobData = new Blob([new Uint8Array(array)], {type: 'zip'})
 
 			fetch(resp.uploadURL,{
 				 
@@ -133,3 +171,59 @@ $('body').on('click', 'button.download', function(){
 		link.click()
 	})
 })
+
+input_reader = new FileReader()
+input_reader.onloadend = function(e){
+	console.log("finished read load")
+	if(fname.split(".")[1] != "zip"){
+		console.log("badfilenouplode")
+		dz_spinner.stop()
+	}
+	else{
+		file = e.target.result
+		do_upload_loop_drag_drop(fname, file)
+	}
+	
+}
+
+function dropHandler(ev) {
+  
+  // Prevent default behavior (Prevent file from being opened)
+  ev.preventDefault();
+
+  if (ev.dataTransfer.items) {
+    // Use DataTransferItemList interface to access the file(s)
+    for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+      // If dropped items aren't files, reject them
+      if (ev.dataTransfer.items[i].kind === 'file') {
+        var file = ev.dataTransfer.items[i].getAsFile();
+        fname = file.name
+        input_reader.readAsDataURL(file)
+        dz_spinner.spin($("#dropzone_spinner")[0])
+      }
+    }
+  } else {
+    // Use DataTransfer interface to access the file(s)
+    for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+
+      fname = ev.dataTransfer.files[0].name
+      input_reader.readAsDataURL(ev.dataTransfer.files[0])
+      dz_spinner.spin($("#dropzone_spinner")[0])
+
+    }
+  }
+}
+function dragenter(ev){
+	console.log("hey")
+	$(".dropzone").addClass("hover")
+}
+
+function dragexit(ev){
+	$(".dropzone").removeClass("hover")
+}
+
+function dragOverHandler(ev) {
+	
+  // Prevent default behavior (Prevent file from being opened)
+  ev.preventDefault();
+}

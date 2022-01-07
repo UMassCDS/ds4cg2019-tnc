@@ -19,7 +19,30 @@ thead{
 	font-weight: bold
 }
 
+
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
+    content: " \25B4\25BE" 
+}
+
 #upload_spinner{
 	margin-left: 20px;
 	display: inline-block;
+}
+
+
+.dropzone{
+	height: 200px;
+	background-color: #DCDCDC;
+	border: 2px solid black;
+	border-radius: 25px;
+}
+
+.dropzone .hover{
+	background-color: light-blue;
+}
+
+
+#dropzone_spinner{
+	position: relative;
+	top: 50%;
 }
