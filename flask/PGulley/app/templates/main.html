@@ -5,10 +5,16 @@
 		<link rel="Stylesheet" href={{style_link}}>
 		<link rel="Stylesheet" href={{spincss_link}}>
 
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 		<script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+			  crossorigin="anonymous"></script>
+
+		<script
+			  src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"
+			  integrity="sha256-hlKLmzaRlE8SCJC1Kw8zoUbU8BxA+8kR3gseuKfMjxA="
 			  crossorigin="anonymous"></script>
 	</head>
 	<body>
@@ -21,6 +27,21 @@
 					ondragenter="dragenter(event)"
 					ondragexit="dragexit(event)">
 				<div id="dropzone_spinner"></div>
+				<div class="dz_decor" id="dz_default">
+					<span class="material-icons" id="dz_default_icon">cloud_upload
+					</span> </br>
+					Drag and Drop your .zip files here
+				</div>
+				<div class="dz_decor" id="dz_error" style='display:none;'>
+					<span class="material-icons" id="dz_default_icon">report
+					</span> </br>
+					Incompatible Filetype 
+				</div>
+				<div class="dz_decor" id="dz_success" style='display:none;'>
+					<span class="material-icons" id="dz_default_icon">check_circle
+					</span> </br>
+					Upload Success 
+				</div>
 			</div>
 		</div>
 		<div class="main">

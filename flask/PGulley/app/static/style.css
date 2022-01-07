@@ -37,12 +37,32 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
 	border-radius: 25px;
 }
 
-.dropzone .hover{
-	background-color: light-blue;
+.dropzone.hover{
+	background-color: #c2c2ea;
 }
 
+.dropzone.success{
+	background-color: #dde8ab;
+}
+
+.dropzone.error{
+	background-color:  #ffcdca;
+}
 
 #dropzone_spinner{
 	position: relative;
 	top: 50%;
 }
+
+
+.dz_decor{
+	position: relative;
+	top: 40%;
+	text-align: center;
+}
+
+#dz_default_icon{
+	font-size: 50px;
+}
+
+

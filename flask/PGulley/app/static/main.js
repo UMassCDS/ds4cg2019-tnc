@@ -11,7 +11,7 @@ var opts = {
   animation: 'spinner-line-fade-more', // The CSS animation name for the lines
   direction: 1, // 1: clockwise, -1: counterclockwise
   color: '#ffffff', // CSS color or array of colors
-  fadeColor: 'transparent', // CSS color or array of colors
+  fadeColor: 'dark-grey', // CSS color or array of colors
   top: 0, // Top position relative to parent
   left: '50%', // Left position relative to parent
   shadow: '0 0 1px transsparent', // Box-shadow for the lines
@@ -20,6 +20,10 @@ var opts = {
   position: 'relative', // Element positioning
 };
 
+default_color ="#DCDCDC"
+hover_color = "#c2c2ea"
+error_color = "#f6ffca"
+success_color = "#ffcdca"
 
 
 upload_spinner = new Spin.Spinner(opts)
@@ -86,7 +90,7 @@ $("#file_upload").change(function(){
 
 
 function do_upload_loop_drag_drop(fname, file){
-	
+	dz_spinner.spin($("#dropzone_spinner")[0])
 	$.ajax({
 			url:window.location.href+"/get_s3_upload_url",
 			data:{filename:fname}
@@ -109,7 +113,16 @@ function do_upload_loop_drag_drop(fname, file){
 						url:window.location.href+"/put_job_record_ddb",
 						data:{location:resp.url.split("?")[0]}
 					}).done(function(resp){
+						
 						dz_spinner.stop()
+						$("#dz_success").fadeIn()
+						setTimeout(function(){
+							$(".dropzone").removeClass("success", {duration:500})
+							$("#dz_success").fadeOut(500)
+							setTimeout(function(){
+								$("#dz_default").fadeIn(500)
+							},500)
+						},2000)
 						poll_ddb()
 					})
 				}
@@ -149,6 +162,7 @@ $("#do_upload").click(function(){
 						data:{location:resp.url.split("?")[0]}
 					}).done(function(resp){
 						upload_spinner.stop()
+
 						poll_ddb()
 					})
 				}
@@ -175,22 +189,35 @@ $('body').on('click', 'button.download', function(){
 input_reader = new FileReader()
 input_reader.onloadend = function(e){
 	console.log("finished read load")
+	
 	if(fname.split(".")[1] != "zip"){
 		console.log("badfilenouplode")
-		dz_spinner.stop()
+	
+		$(".dropzone").addClass("error",{duration:0})
+		$("#dz_error").fadeIn(0)
+		
+		setTimeout(function(){
+			$(".dropzone").removeClass("error", {duration:500})
+			$("#dz_error").fadeOut(500)
+			setTimeout(function(){
+				$("#dz_default").fadeIn(250)
+			},500)
+		}, 2000)
 	}
 	else{
 		file = e.target.result
+		$(".dropzone").addClass("success", {duration:250})
 		do_upload_loop_drag_drop(fname, file)
 	}
 	
 }
 
 function dropHandler(ev) {
-  
+ 
   // Prevent default behavior (Prevent file from being opened)
   ev.preventDefault();
-
+  $(".dropzone").removeClass("hover", {duration:0})
+  $("#dz_default").fadeOut(0)
   if (ev.dataTransfer.items) {
     // Use DataTransferItemList interface to access the file(s)
     for (var i = 0; i < ev.dataTransfer.items.length; i++) {
@@ -199,7 +226,8 @@ function dropHandler(ev) {
         var file = ev.dataTransfer.items[i].getAsFile();
         fname = file.name
         input_reader.readAsDataURL(file)
-        dz_spinner.spin($("#dropzone_spinner")[0])
+        
+        
       }
     }
   } else {
@@ -208,22 +236,19 @@ function dropHandler(ev) {
 
       fname = ev.dataTransfer.files[0].name
       input_reader.readAsDataURL(ev.dataTransfer.files[0])
-      dz_spinner.spin($("#dropzone_spinner")[0])
-
     }
   }
 }
+
 function dragenter(ev){
-	console.log("hey")
-	$(".dropzone").addClass("hover")
+	$(".dropzone").addClass("hover", {duration:250})
 }
 
 function dragexit(ev){
-	$(".dropzone").removeClass("hover")
+	$(".dropzone").removeClass("hover", {duration: 250})
 }
 
 function dragOverHandler(ev) {
-	
   // Prevent default behavior (Prevent file from being opened)
   ev.preventDefault();
 }
